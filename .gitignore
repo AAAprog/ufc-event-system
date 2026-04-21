@@ -1,0 +1,18 @@
+# OS
+Thumbs.db
+Desktop.ini
+
+# Editors
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Environment-specific files
+.env
+.env.*
+
+# PHP / XAMPP temp artifacts
+php_error_log
+
