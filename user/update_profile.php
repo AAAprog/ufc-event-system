@@ -10,7 +10,18 @@ if (!isset($_SESSION['user'])) {
 }
 
 $username = $_SESSION['user'];
+$flash = pull_flash_message();
 $message = '';
+$old = $_SESSION['profile_old'] ?? [];
+
+unset($_SESSION['profile_old']);
+
+function redirect_profile_flash(string $message, string $type = 'status-error'): void
+{
+    set_flash_message($message, $type);
+    header('Location: update_profile.php');
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_valid_csrf_token($_POST['csrf_token'] ?? null);
@@ -20,14 +31,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $currentPassword = $_POST['current_password'] ?? '';
     $newPassword = $_POST['new_password'] ?? '';
 
+    $_SESSION['profile_old'] = [
+        'username' => $newUsername,
+        'email' => $newEmail,
+    ];
+
     if ($newUsername === '' || $newEmail === '' || $currentPassword === '') {
-        $message = "Please fill in all required fields.";
+        redirect_profile_flash("Please fill in all required fields.");
     } elseif (!is_valid_username($newUsername)) {
-        $message = "Username must be 3 to 30 characters and use only letters, numbers, or underscores.";
+        redirect_profile_flash("Username must be 3 to 30 characters and use only letters, numbers, or underscores.");
     } elseif (!is_valid_email_address($newEmail)) {
-        $message = "Please enter a valid email address.";
+        redirect_profile_flash("Please enter a valid email address.");
     } elseif ($newPassword !== '' && !is_strong_enough_password($newPassword)) {
-        $message = "New password must be at least 8 characters long.";
+        redirect_profile_flash("New password must be at least 8 characters long.");
     } else {
         $stmt = mysqli_prepare($conn, "SELECT password FROM users WHERE username = ?");
         mysqli_stmt_bind_param($stmt, "s", $username);
@@ -37,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mysqli_stmt_close($stmt);
 
         if (!$user || !password_verify($currentPassword, $user['password'])) {
-            $message = "Current password is incorrect!";
+            redirect_profile_flash("Current password is incorrect!");
         } else {
             $duplicateCheck = mysqli_prepare(
                 $conn,
@@ -60,9 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_stmt_close($emailDuplicateCheck);
 
             if ($hasDuplicate) {
-                $message = "That username is already in use.";
+                redirect_profile_flash("That username is already in use.");
             } elseif ($hasEmailDuplicate) {
-                $message = "That email address is already in use.";
+                redirect_profile_flash("That email address is already in use.");
             } else {
                 if ($newPassword !== '') {
                     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
@@ -83,22 +99,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (mysqli_stmt_execute($stmt)) {
                         regenerate_session_after_login();
                         $_SESSION['user'] = $newUsername;
-                        $username = $newUsername;
-                        $message = "Profile updated successfully!";
+                        unset($_SESSION['profile_old']);
+                        mysqli_stmt_close($stmt);
+                        redirect_profile_flash("Profile updated successfully!", 'status-success');
                     } else {
-                        $message = "Error updating profile.";
+                        mysqli_stmt_close($stmt);
+                        redirect_profile_flash("Error updating profile.");
                     }
                 } catch (mysqli_sql_exception $exception) {
                     if ((int) $exception->getCode() === 1062) {
-                        $message = "That username or email address is already in use.";
+                        mysqli_stmt_close($stmt);
+                        redirect_profile_flash("That username or email address is already in use.");
                     } else {
-                        $message = "Error updating profile.";
+                        mysqli_stmt_close($stmt);
+                        redirect_profile_flash("Error updating profile.");
                     }
                 }
-                mysqli_stmt_close($stmt);
             }
         }
     }
+}
+
+if (is_array($flash) && !empty($flash['message'])) {
+    $message = (string) $flash['message'];
 }
 
 $stmt = mysqli_prepare($conn, "SELECT email FROM users WHERE username = ?");
@@ -153,7 +176,7 @@ mysqli_stmt_close($stmt);
         <span class="eyebrow">Profile</span>
         <h2>Update Profile</h2>
         <?php if ($message): ?>
-            <p class="status-message <?= strpos($message, 'successfully') !== false ? 'status-success' : 'status-error' ?>">
+            <p class="status-message <?= htmlspecialchars($flash['type'] ?? (strpos($message, 'successfully') !== false ? 'status-success' : 'status-error'), ENT_QUOTES, 'UTF-8') ?>">
                 <?= htmlspecialchars($message) ?>
             </p>
         <?php endif; ?>
@@ -162,12 +185,12 @@ mysqli_stmt_close($stmt);
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" value="<?= htmlspecialchars($username) ?>" pattern="[A-Za-z0-9_]{3,30}" minlength="3" maxlength="30" required>
+                <input type="text" id="username" name="username" value="<?= htmlspecialchars($old['username'] ?? $username) ?>" pattern="[A-Za-z0-9_]{3,30}" minlength="3" maxlength="30" required>
             </div>
 
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" value="<?= htmlspecialchars($userData['email'] ?? '') ?>" required>
+                <input type="email" id="email" name="email" value="<?= htmlspecialchars($old['email'] ?? ($userData['email'] ?? '')) ?>" required>
             </div>
 
             <div class="form-group">

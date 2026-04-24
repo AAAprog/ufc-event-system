@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once '../db/app.php';
+ensure_session_started();
 if (!isset($_SESSION['admin'])) {
     header("Location: adminLogin.php");
     exit;
@@ -14,6 +15,7 @@ $eventCount = 0;
 $adminCount = 0;
 $bookedCount = 0;
 $seatsLeft = 0;
+$dashboardWarning = '';
 
 try {
     $userCount = (int) mysqli_fetch_row(mysqli_query($conn, "SELECT COUNT(*) FROM users"))[0];
@@ -22,11 +24,13 @@ try {
     $bookedCount = (int) mysqli_fetch_row(mysqli_query($conn, "SELECT COUNT(*) FROM users WHERE registered_event IS NOT NULL"))[0];
     $seatsLeft = (int) mysqli_fetch_row(mysqli_query($conn, "SELECT COALESCE(SUM(GREATEST(quota - registered_count, 0)), 0) FROM events"))[0];
 } catch (Throwable $e) {
+    error_log('Admin dashboard stats failed: ' . $e->getMessage());
     $userCount = 0;
     $eventCount = 0;
     $adminCount = 0;
     $bookedCount = 0;
     $seatsLeft = 0;
+    $dashboardWarning = 'Some dashboard stats could not be loaded right now.';
 }
 ?>
 
@@ -53,12 +57,15 @@ try {
     </header>
 
 <main class="panel-shell app-shell animate-in dashboard-layout">
+  <?php if ($dashboardWarning !== ''): ?>
+    <p class="status-message status-error"><?= htmlspecialchars($dashboardWarning, ENT_QUOTES, 'UTF-8'); ?></p>
+  <?php endif; ?>
   <section class="decision-panel">
     <span class="eyebrow">Operations</span>
     <h1 class="decision-title">Admin Control Center</h1>
     <div class="context-pill-row">
       <span class="context-pill">Signed in as <?= htmlspecialchars($admin, ENT_QUOTES, 'UTF-8'); ?></span>
-      <span class="context-pill">System status: online</span>
+      <span class="context-pill"><?= $dashboardWarning === '' ? 'System status: online' : 'System status: limited' ?></span>
     </div>
     <div class="action-bar">
       <a href="manage_users.php" class="btn">Manage Users</a>

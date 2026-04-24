@@ -12,7 +12,7 @@ Desktop.ini
 # Environment-specific files
 .env
 .env.*
+db/config.runtime.php
 
 # PHP / XAMPP temp artifacts
 php_error_log
-
