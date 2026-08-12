@@ -135,7 +135,6 @@ p {
 }
 
 .hero-grid,
-.auth-layout,
 .dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.86fr);
@@ -143,7 +142,14 @@ p {
   align-items: start;
 }
 
-/* Authentication guidance should remain content-sized beside longer forms. */
+.auth-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 760px);
+  justify-content: center;
+  gap: 18px;
+}
+
+/* Authentication guidance should remain content-sized above longer forms. */
 .auth-info {
   align-self: start;
 }
