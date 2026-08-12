@@ -61,13 +61,15 @@
           <label>Email<input name="email" type="email" value="new.member@example.com" required></label>
           <label>Password<input name="password" value="member123" type="password" minlength="8" required></label>
           <label>Confirm Password<input name="confirm_password" value="member123" type="password" minlength="8" required></label>
-          <label>Nationality<select name="nationality" data-nationality-select required></select></label>
-          <label>Gender
-            <select name="gender" required>
-              <option>Male</option>
-              <option>Female</option>
-            </select>
-          </label>
+          <div class="register-select-row">
+            <label>Nationality<select name="nationality" data-nationality-select required></select></label>
+            <label>Gender
+              <select name="gender" required>
+                <option>Male</option>
+                <option>Female</option>
+              </select>
+            </label>
+          </div>
           <button class="btn" type="submit">Register</button>
           <p class="auth-switch">Already have an account? <button class="auth-switch-link nav-trigger" data-screen="login" type="button">Sign in</button></p>
         </form>
