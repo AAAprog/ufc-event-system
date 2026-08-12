@@ -1,4 +1,9 @@
 <?php
+
+/**
+ * Database configuration is resolved from a local runtime file first, then
+ * environment variables. This keeps deployment credentials out of source control.
+ */
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 function get_database_config(): array

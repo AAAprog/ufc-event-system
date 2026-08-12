@@ -49,6 +49,10 @@ if (!is_valid_gender($gender)) {
     redirect_with_flash('Please choose a valid gender option.', 'status-error', 'register.php');
 }
 
+if (!is_valid_nationality($nationality)) {
+    redirect_with_flash('Please choose a valid nationality.', 'status-error', 'register.php');
+}
+
 if ($password !== $confirm) {
     redirect_with_flash('Passwords do not match.', 'status-error', 'register.php');
 }

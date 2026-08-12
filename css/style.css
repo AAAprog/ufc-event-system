@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Oswald:wght@500;700&display=swap');
 
+/* Design tokens and shared document defaults. */
+
 :root {
   --bg: #050203;
   --bg-elevated: rgba(18, 5, 7, 0.95);
@@ -76,6 +78,7 @@ a {
   color: inherit;
 }
 
+/* Global navigation. */
 header {
   display: flex;
   justify-content: space-between;
@@ -2158,6 +2161,7 @@ nav a.nav-admin-link:hover {
   text-shadow: 0 0 10px var(--neon-gold);
 }
 
+/* Responsive layout adjustments. */
 @media (max-width: 900px) {
   header {
     flex-direction: column;

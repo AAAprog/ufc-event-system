@@ -2,17 +2,11 @@
 require_once '../db/config.php';
 require_once '../db/app.php';
 
-ensure_session_started();
-
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit;
-}
-
-$username = $_SESSION['user'];
+$username = require_member_session();
 $flash = pull_flash_message();
 $message = '';
 $old = $_SESSION['profile_old'] ?? [];
+$nationalities = nationality_options();
 
 unset($_SESSION['profile_old']);
 
@@ -28,20 +22,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $newUsername = normalize_username($_POST['username'] ?? '');
     $newEmail = trim($_POST['email'] ?? '');
+    $newNationality = trim($_POST['nationality'] ?? '');
     $currentPassword = $_POST['current_password'] ?? '';
     $newPassword = $_POST['new_password'] ?? '';
 
     $_SESSION['profile_old'] = [
         'username' => $newUsername,
         'email' => $newEmail,
+        'nationality' => $newNationality,
     ];
 
-    if ($newUsername === '' || $newEmail === '' || $currentPassword === '') {
+    if ($newUsername === '' || $newEmail === '' || $newNationality === '' || $currentPassword === '') {
         redirect_profile_flash("Please fill in all required fields.");
     } elseif (!is_valid_username($newUsername)) {
         redirect_profile_flash("Username must be 3 to 30 characters and use only letters, numbers, or underscores.");
     } elseif (!is_valid_email_address($newEmail)) {
         redirect_profile_flash("Please enter a valid email address.");
+    } elseif (!is_valid_nationality($newNationality)) {
+        redirect_profile_flash("Please choose a valid nationality.");
     } elseif ($newPassword !== '' && !is_strong_enough_password($newPassword)) {
         redirect_profile_flash("New password must be at least 8 characters long.");
     } else {
@@ -53,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mysqli_stmt_close($stmt);
 
         if (!$user || !password_verify($currentPassword, $user['password'])) {
-            redirect_profile_flash("Current password is incorrect!");
+            redirect_profile_flash('Current password is incorrect.');
         } else {
             $duplicateCheck = mysqli_prepare(
                 $conn,
@@ -84,15 +82,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
                     $stmt = mysqli_prepare(
                         $conn,
-                        "UPDATE users SET username = ?, email = ?, password = ? WHERE username = ?"
+                        "UPDATE users SET username = ?, email = ?, nationality = ?, password = ? WHERE username = ?"
                     );
-                    mysqli_stmt_bind_param($stmt, "ssss", $newUsername, $newEmail, $hashedPassword, $username);
+                    mysqli_stmt_bind_param($stmt, "sssss", $newUsername, $newEmail, $newNationality, $hashedPassword, $username);
                 } else {
                     $stmt = mysqli_prepare(
                         $conn,
-                        "UPDATE users SET username = ?, email = ? WHERE username = ?"
+                        "UPDATE users SET username = ?, email = ?, nationality = ? WHERE username = ?"
                     );
-                    mysqli_stmt_bind_param($stmt, "sss", $newUsername, $newEmail, $username);
+                    mysqli_stmt_bind_param($stmt, "ssss", $newUsername, $newEmail, $newNationality, $username);
                 }
 
                 try {
@@ -101,10 +99,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['user'] = $newUsername;
                         unset($_SESSION['profile_old']);
                         mysqli_stmt_close($stmt);
-                        redirect_profile_flash("Profile updated successfully!", 'status-success');
+                        redirect_profile_flash('Profile updated successfully.', 'status-success');
                     } else {
                         mysqli_stmt_close($stmt);
-                        redirect_profile_flash("Error updating profile.");
+                        redirect_profile_flash('Unable to update the profile. Please try again.');
                     }
                 } catch (mysqli_sql_exception $exception) {
                     if ((int) $exception->getCode() === 1062) {
@@ -112,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         redirect_profile_flash("That username or email address is already in use.");
                     } else {
                         mysqli_stmt_close($stmt);
-                        redirect_profile_flash("Error updating profile.");
+                        redirect_profile_flash('Unable to update the profile. Please try again.');
                     }
                 }
             }
@@ -124,7 +122,7 @@ if (is_array($flash) && !empty($flash['message'])) {
     $message = (string) $flash['message'];
 }
 
-$stmt = mysqli_prepare($conn, "SELECT email FROM users WHERE username = ?");
+$stmt = mysqli_prepare($conn, "SELECT email, nationality FROM users WHERE username = ?");
 mysqli_stmt_bind_param($stmt, "s", $username);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
@@ -191,6 +189,19 @@ mysqli_stmt_close($stmt);
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" value="<?= htmlspecialchars($old['email'] ?? ($userData['email'] ?? '')) ?>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="nationality">Nationality</label>
+                <select id="nationality" name="nationality" required>
+                    <option value="">Select your nationality</option>
+                    <?php foreach ($nationalities as $nationality): ?>
+                        <?php $selectedNationality = $old['nationality'] ?? ($userData['nationality'] ?? ''); ?>
+                        <option value="<?= htmlspecialchars($nationality, ENT_QUOTES, 'UTF-8'); ?>" <?= $selectedNationality === $nationality ? 'selected' : ''; ?>>
+                            <?= htmlspecialchars($nationality, ENT_QUOTES, 'UTF-8'); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
             <div class="form-group">

@@ -1,3 +1,6 @@
+const storageKey = "ufc-event-system-state";
+
+// The preview persists interactions locally so each flow can be explored end to end.
 const defaultState = {
   currentUserId: 1,
   users: [
@@ -51,12 +54,22 @@ function populateNationalityMenus() {
 }
 
 function loadState() {
-  const saved = localStorage.getItem("ufc-demo-state");
-  return saved ? JSON.parse(saved) : structuredClone(defaultState);
+  const saved = localStorage.getItem(storageKey);
+
+  if (!saved) {
+    return structuredClone(defaultState);
+  }
+
+  try {
+    return JSON.parse(saved);
+  } catch {
+    localStorage.removeItem(storageKey);
+    return structuredClone(defaultState);
+  }
 }
 
 function saveState() {
-  localStorage.setItem("ufc-demo-state", JSON.stringify(state));
+  localStorage.setItem(storageKey, JSON.stringify(state));
 }
 
 function nextId(items) {
@@ -306,7 +319,7 @@ document.addEventListener("click", (event) => {
     return;
   }
 
-  if (event.target.id === "resetDemo") {
+  if (event.target.id === "resetAppState") {
     state = structuredClone(defaultState);
     saveState();
     render();

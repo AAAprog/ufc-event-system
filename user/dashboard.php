@@ -2,14 +2,7 @@
 require_once '../db/app.php';
 require_once '../db/config.php';
 
-ensure_session_started();
-
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit;
-}
-
-$username = $_SESSION['user'];
+$username = require_member_session();
 $userEmail = '';
 $registeredEventName = null;
 $primaryActionLabel = 'Register for Event';

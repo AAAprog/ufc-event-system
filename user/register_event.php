@@ -2,14 +2,7 @@
 require_once '../db/config.php';
 require_once '../db/app.php';
 
-ensure_session_started();
-
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit;
-}
-
-$username = $_SESSION['user'];
+$username = require_member_session();
 $message = '';
 $messageClass = 'status-error';
 $currentEventName = null;
@@ -24,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['event_id'])) {
         mysqli_begin_transaction($conn);
 
         try {
+            // Lock the member and target event so concurrent bookings cannot exceed capacity.
             $userStmt = mysqli_prepare($conn, "SELECT registered_event FROM users WHERE username = ? FOR UPDATE");
             mysqli_stmt_bind_param($userStmt, "s", $username);
             mysqli_stmt_execute($userStmt);
@@ -87,11 +81,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['event_id'])) {
             }
 
             mysqli_commit($conn);
-            $message = "Successfully registered for the event!";
+            $message = 'Booking updated successfully.';
             $messageClass = 'status-success';
         } catch (Throwable $exception) {
             mysqli_rollback($conn);
-            $message = $exception->getMessage();
+            error_log('Event booking update failed: ' . $exception->getMessage());
+            $message = $exception instanceof RuntimeException
+                ? $exception->getMessage()
+                : 'Unable to update the booking. Please try again.';
         }
     }
 }
@@ -159,7 +156,7 @@ $events = mysqli_query(
 
     <?php if ($message !== ''): ?>
         <p class="status-message <?= $messageClass; ?>">
-            <?= htmlspecialchars($message) ?>
+            <?= escape_html($message) ?>
         </p>
     <?php endif; ?>
 
@@ -168,14 +165,14 @@ $events = mysqli_query(
             <span class="eyebrow">Booking Form</span>
             <h3>Select Event</h3>
             <form method="POST" class="clean-form">
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
+                <input type="hidden" name="csrf_token" value="<?= escape_html(csrf_token()) ?>">
                 <div class="form-group">
                     <label for="event_id">Select Event</label>
                     <select id="event_id" name="event_id" required>
                         <option value="">-- Select an Event --</option>
                         <?php while ($event = mysqli_fetch_assoc($events)): ?>
                             <option value="<?= (int) $event['id'] ?>">
-                                <?= htmlspecialchars($event['name']) ?> (<?= (int) $event['registered_count'] ?>/<?= (int) $event['quota'] ?>)
+                                <?= escape_html($event['name']) ?> (<?= (int) $event['registered_count'] ?>/<?= (int) $event['quota'] ?>)
                             </option>
                         <?php endwhile; ?>
                     </select>
@@ -205,7 +202,7 @@ $events = mysqli_query(
                 </div>
                 <div class="hero-stat booking-stat-booking">
                     <span class="hero-stat-label">Current Booking</span>
-                    <strong class="hero-stat-value"><?= htmlspecialchars($currentEventName ?: 'None', ENT_QUOTES, 'UTF-8') ?></strong>
+                    <strong class="hero-stat-value"><?= escape_html($currentEventName ?: 'None') ?></strong>
                 </div>
             </div>
         </section>

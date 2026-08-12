@@ -5,6 +5,7 @@ ensure_session_started();
 
 $flash = pull_flash_message();
 $old = $_SESSION['register_old'] ?? [];
+$nationalities = nationality_options();
 
 unset($_SESSION['register_old']);
 ?>
@@ -87,7 +88,14 @@ unset($_SESSION['register_old']);
                 </div>
                 <div class="form-group">
                     <label for="nationality">Nationality</label>
-                    <input type="text" id="nationality" name="nationality" placeholder="Enter your nationality" value="<?= htmlspecialchars($old['nationality'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required>
+                    <select id="nationality" name="nationality" required>
+                        <option value="">Select your nationality</option>
+                        <?php foreach ($nationalities as $nationality): ?>
+                            <option value="<?= htmlspecialchars($nationality, ENT_QUOTES, 'UTF-8'); ?>" <?= (($old['nationality'] ?? '') === $nationality) ? 'selected' : ''; ?>>
+                                <?= htmlspecialchars($nationality, ENT_QUOTES, 'UTF-8'); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div class="clean-actions">
                     <button type="submit" class="btn">Register</button>

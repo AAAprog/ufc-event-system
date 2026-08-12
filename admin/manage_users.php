@@ -2,12 +2,7 @@
 require_once '../db/config.php';
 require_once '../db/app.php';
 
-ensure_session_started();
-
-if (!isset($_SESSION['admin'])) {
-    header("Location: adminLogin.php");
-    exit;
-}
+$adminUsername = require_admin_session();
 
 $search = trim($_GET['q'] ?? '');
 $flash = pull_flash_message();
@@ -65,7 +60,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
             $type = 'status-success';
         } catch (Throwable $exception) {
             mysqli_rollback($conn);
-            $message = $exception->getMessage();
+            error_log('User deletion failed: ' . $exception->getMessage());
+            $message = $exception instanceof RuntimeException
+                ? $exception->getMessage()
+                : 'Unable to delete the user. Please try again.';
         }
     }
 
@@ -158,10 +156,10 @@ $filteredCount = count($users);
             <div class="intro-card">
                 <span class="eyebrow">Users</span>
                 <h1>Manage Users</h1>
-                <p>Search the roster, review registrations, and remove accounts from one control screen instead of bouncing across separate pages.</p>
+            <p>Search the member directory, review registrations, and manage accounts from one place.</p>
                 <div class="users-meta">
-                    <span>Signed in as <?= htmlspecialchars($_SESSION['admin'], ENT_QUOTES, 'UTF-8'); ?></span>
-                    <span>User operations ready</span>
+                    <span>Signed in as <?= escape_html($adminUsername); ?></span>
+                    <span>Member management</span>
                 </div>
                 <div class="users-stats">
                     <div class="users-stat">
@@ -206,7 +204,7 @@ $filteredCount = count($users);
             <div class="table-head">
                 <div>
                     <span class="eyebrow">Directory</span>
-                    <h2>User Command Table</h2>
+                    <h2>Member Directory</h2>
                 </div>
                 <p><?= $search !== '' ? 'Filtered results for "' . htmlspecialchars($search, ENT_QUOTES, 'UTF-8') . '"' : 'Showing all registered users'; ?></p>
             </div>

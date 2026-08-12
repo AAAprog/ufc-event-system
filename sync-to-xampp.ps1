@@ -1,3 +1,4 @@
+# Mirrors the working tree to XAMPP while excluding repository and dependency files.
 param(
     [string]$Source = $PSScriptRoot,
     [string]$Target = 'C:\xampp\htdocs\ufc_event_system'

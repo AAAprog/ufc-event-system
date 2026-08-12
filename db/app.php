@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Provides the session, validation, and form-state primitives shared by member
+ * and administrator workflows.
+ */
+
 function ensure_session_started(): void
 {
     if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -17,6 +22,39 @@ function ensure_session_started(): void
         ]);
         session_start();
     }
+}
+
+function escape_html(?string $value): string
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
+function redirect_to(string $location): void
+{
+    header('Location: ' . $location);
+    exit;
+}
+
+function require_member_session(string $loginPath = 'login.php'): string
+{
+    ensure_session_started();
+
+    if (!isset($_SESSION['user']) || !is_string($_SESSION['user'])) {
+        redirect_to($loginPath);
+    }
+
+    return $_SESSION['user'];
+}
+
+function require_admin_session(string $loginPath = 'adminLogin.php'): string
+{
+    ensure_session_started();
+
+    if (!isset($_SESSION['admin']) || !is_string($_SESSION['admin'])) {
+        redirect_to($loginPath);
+    }
+
+    return $_SESSION['admin'];
 }
 
 function csrf_token(): string
@@ -113,6 +151,85 @@ function is_valid_email_address(string $email): bool
 function is_valid_gender(string $gender): bool
 {
     return in_array($gender, ['male', 'female'], true);
+}
+
+function nationality_options(): array
+{
+    return [
+        'Afghanistan',
+        'Albania',
+        'Algeria',
+        'Argentina',
+        'Australia',
+        'Austria',
+        'Bahrain',
+        'Bangladesh',
+        'Belgium',
+        'Brazil',
+        'Bulgaria',
+        'Canada',
+        'Chile',
+        'China',
+        'Colombia',
+        'Croatia',
+        'Czech Republic',
+        'Denmark',
+        'Egypt',
+        'Finland',
+        'France',
+        'Germany',
+        'Greece',
+        'Hungary',
+        'India',
+        'Indonesia',
+        'Iran',
+        'Iraq',
+        'Ireland',
+        'Italy',
+        'Japan',
+        'Jordan',
+        'Kuwait',
+        'Lebanon',
+        'Libya',
+        'Malaysia',
+        'Mexico',
+        'Morocco',
+        'Netherlands',
+        'New Zealand',
+        'Nigeria',
+        'Norway',
+        'Oman',
+        'Pakistan',
+        'Philippines',
+        'Poland',
+        'Portugal',
+        'Qatar',
+        'Romania',
+        'Russia',
+        'Saudi Arabia',
+        'Serbia',
+        'Singapore',
+        'South Africa',
+        'South Korea',
+        'Spain',
+        'Sweden',
+        'Switzerland',
+        'Syria',
+        'Thailand',
+        'Tunisia',
+        'Turkey',
+        'Ukraine',
+        'United Arab Emirates',
+        'United Kingdom',
+        'United States',
+        'Vietnam',
+        'Yemen',
+    ];
+}
+
+function is_valid_nationality(string $nationality): bool
+{
+    return in_array($nationality, nationality_options(), true);
 }
 
 function is_strong_enough_password(string $password): bool

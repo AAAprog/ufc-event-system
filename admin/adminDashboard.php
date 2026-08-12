@@ -1,14 +1,9 @@
 <?php
 require_once '../db/app.php';
-ensure_session_started();
-if (!isset($_SESSION['admin'])) {
-    header("Location: adminLogin.php");
-    exit;
-}
 
 require_once '../db/config.php';
 
-$admin = $_SESSION['admin'];
+$admin = require_admin_session();
 
 $userCount = 0;
 $eventCount = 0;

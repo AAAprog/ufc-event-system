@@ -2,12 +2,7 @@
 require_once '../db/config.php';
 require_once '../db/app.php';
 
-ensure_session_started();
-
-if (!isset($_SESSION['admin'])) {
-    header("Location: adminLogin.php");
-    exit;
-}
+$adminUsername = require_admin_session();
 
 $message = '';
 $messageClass = 'status-error';
@@ -46,7 +41,7 @@ if (isset($_POST['add_event'])) {
                 $saved = false;
             }
 
-            $message = $saved ? "New sub-event added." : "Failed to add event.";
+            $message = $saved ? 'Event created successfully.' : 'Unable to create the event.';
             $messageClass = $saved ? 'status-success' : 'status-error';
         }
     } else {
@@ -147,7 +142,10 @@ if (isset($_POST['save_all_events'])) {
                     mysqli_stmt_close($updateStmt);
                 }
 
-                $message = $exception->getMessage();
+                error_log('Event update failed: ' . $exception->getMessage());
+                $message = $exception instanceof RuntimeException
+                    ? $exception->getMessage()
+                    : 'Unable to save event changes. Please try again.';
             }
         }
     }
@@ -174,7 +172,7 @@ if (isset($_POST['delete_event'])) {
             $message = "Event deleted successfully.";
             $messageClass = 'status-success';
         } else {
-            $message = "Failed to delete event.";
+            $message = 'Unable to delete the event. Please try again.';
         }
     }
 
@@ -238,10 +236,10 @@ $currentResults = count($events);
             <div class="intro-card">
                 <span class="eyebrow">Events</span>
                 <h1>Manage Events</h1>
-                <p>Create sub-events, monitor booking pressure, and update capacity from one control screen with the same structure as the user directory.</p>
+                <p>Create events, monitor booking activity, and update capacity from one place.</p>
                 <div class="events-meta">
-                    <span>Signed in as <?= htmlspecialchars($_SESSION['admin'], ENT_QUOTES, 'UTF-8'); ?></span>
-                    <span>Capacity controls ready</span>
+                    <span>Signed in as <?= escape_html($adminUsername); ?></span>
+                    <span>Capacity management</span>
                 </div>
                 <div class="events-stats">
                     <div class="events-stat">
@@ -260,8 +258,8 @@ $currentResults = count($events);
             </div>
 
             <section class="control-card">
-                <h2>Create Directory</h2>
-                <p>Add a new event entry with its initial quota, then adjust capacity directly from the command table when needed.</p>
+                <h2>Create Event</h2>
+                <p>Add an event with its initial capacity, then update details from the event list when needed.</p>
                 <form method="post" class="control-form">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="form-group">
@@ -298,7 +296,7 @@ $currentResults = count($events);
             <div class="table-head">
                 <div>
                     <span class="eyebrow">Directory</span>
-                    <h2>Event Command Table</h2>
+                    <h2>Event Directory</h2>
                 </div>
                 <p><?= $currentResults > 0 ? 'Showing all configured events' : 'No events available yet'; ?></p>
             </div>
