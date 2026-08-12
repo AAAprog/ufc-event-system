@@ -93,7 +93,8 @@ function navigate(screen) {
   });
 
   document.querySelectorAll(".nav-trigger").forEach((item) => {
-    item.classList.toggle("is-active", item.dataset.screen === screen);
+    const isMemberFlow = item.dataset.screen === "login" && screen === "register";
+    item.classList.toggle("is-active", item.dataset.screen === screen || isMemberFlow);
   });
 
   document.body.classList.toggle(

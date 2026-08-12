@@ -161,7 +161,7 @@ body.auth-screen::before {
 }
 
 body.auth-screen .topbar {
-  display: none;
+  display: flex;
 }
 
 body.auth-screen .app-shell {
@@ -169,7 +169,7 @@ body.auth-screen .app-shell {
 }
 
 body.auth-screen .screen {
-  min-height: 100vh;
+  min-height: calc(100vh - 70px);
   padding: 28px 0;
 }
 
