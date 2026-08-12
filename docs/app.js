@@ -96,6 +96,11 @@ function navigate(screen) {
     item.classList.toggle("is-active", item.dataset.screen === screen);
   });
 
+  document.body.classList.toggle(
+    "auth-screen",
+    ["login", "register", "profile", "adminLogin"].includes(screen)
+  );
+
   render();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }

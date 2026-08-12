@@ -50,12 +50,13 @@
 
     <section class="screen" id="screen-register">
       <div class="auth-layout">
-        <aside class="auth-info app-card">
-          <h1>Create Account</h1>
-          <p>Create a member profile to access event booking and profile management.</p>
-          <button class="text-link nav-trigger" data-screen="login" type="button">Already have an account? Sign in</button>
-        </aside>
-        <form class="form-card app-card" id="registerForm">
+        <form class="form-card app-card auth-card" id="registerForm">
+          <div class="auth-header">
+            <button class="auth-mark nav-trigger" data-screen="home" type="button">UFC Fight Night</button>
+            <span class="auth-kicker">Registration</span>
+            <h1>Create your member account</h1>
+            <p>Create a member profile to access event booking and profile management.</p>
+          </div>
           <label>Username<input name="username" value="new_member" required></label>
           <label>Email<input name="email" type="email" value="new.member@example.com" required></label>
           <label>Password<input name="password" value="member123" type="password" minlength="8" required></label>
@@ -68,21 +69,24 @@
             </select>
           </label>
           <button class="btn" type="submit">Register</button>
+          <p class="auth-switch">Already have an account? <button class="auth-switch-link nav-trigger" data-screen="login" type="button">Sign in</button></p>
         </form>
       </div>
     </section>
 
     <section class="screen" id="screen-login">
       <div class="auth-layout">
-        <aside class="auth-info app-card">
-          <h1>Member Access</h1>
-          <p>Sign in to view the member dashboard and manage event registration.</p>
-          <button class="text-link nav-trigger" data-screen="register" type="button">Create a new member</button>
-        </aside>
-        <form class="form-card app-card" id="loginForm">
+        <form class="form-card app-card auth-card" id="loginForm">
+          <div class="auth-header">
+            <button class="auth-mark nav-trigger" data-screen="home" type="button">UFC Fight Night</button>
+            <span class="auth-kicker">Member access</span>
+            <h1>Sign in to your account</h1>
+            <p>Access your dashboard, event registration, and profile settings.</p>
+          </div>
           <label>Username<input name="username" value="ahmed_member" required></label>
           <label>Password<input name="password" value="member123" type="password" required></label>
           <button class="btn" type="submit">Sign In</button>
+          <p class="auth-switch">New to the system? <button class="auth-switch-link nav-trigger" data-screen="register" type="button">Create an account</button></p>
         </form>
       </div>
     </section>
@@ -134,11 +138,13 @@
 
     <section class="screen" id="screen-profile">
       <div class="auth-layout">
-        <aside class="auth-info app-card">
-          <h1>Update Profile</h1>
-          <p>Edit member profile details and return to the dashboard.</p>
-        </aside>
-        <form class="form-card app-card" id="profileForm">
+        <form class="form-card app-card auth-card" id="profileForm">
+          <div class="auth-header">
+            <button class="auth-mark nav-trigger" data-screen="memberDashboard" type="button">UFC Fight Night</button>
+            <span class="auth-kicker">Member profile</span>
+            <h1>Update your profile</h1>
+            <p>Keep your member details current before returning to the dashboard.</p>
+          </div>
           <label>Username<input name="username" required></label>
           <label>Email<input name="email" type="email" required></label>
           <label>Nationality<select name="nationality" data-nationality-select required></select></label>
@@ -151,11 +157,13 @@
 
     <section class="screen" id="screen-adminLogin">
       <div class="auth-layout">
-        <aside class="auth-info app-card">
-          <h1>Admin Access</h1>
-          <p>Open the admin side to manage users, events, quotas, and booking capacity.</p>
-        </aside>
-        <form class="form-card app-card" id="adminLoginForm">
+        <form class="form-card app-card auth-card" id="adminLoginForm">
+          <div class="auth-header">
+            <button class="auth-mark nav-trigger" data-screen="home" type="button">UFC Fight Night</button>
+            <span class="auth-kicker">Administration</span>
+            <h1>Admin access</h1>
+            <p>Manage members, events, quotas, and booking capacity.</p>
+          </div>
           <label>Admin Username<input value="admin" required></label>
           <label>Password<input value="admin123" type="password" required></label>
           <button class="btn" type="submit">Open Admin Dashboard</button>
