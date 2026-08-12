@@ -140,7 +140,12 @@ p {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.86fr);
   gap: 18px;
-  align-items: stretch;
+  align-items: start;
+}
+
+/* Authentication guidance should remain content-sized beside longer forms. */
+.auth-info {
+  align-self: start;
 }
 
 .app-card,
