@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UFC Event Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <button class="brand nav-trigger" data-screen="home" type="button">UFC Fight Night</button>
+    <nav>
+      <button class="nav-trigger is-active" data-screen="home" type="button">Home</button>
+      <button class="nav-trigger" data-screen="login" type="button">Member</button>
+      <button class="nav-trigger" data-screen="adminLogin" type="button">Admin</button>
+      <button class="nav-trigger" data-screen="source" type="button">Source</button>
+    </nav>
+  </header>
+
+  <main class="app-shell">
+    <section class="screen is-active" id="screen-home">
+      <div class="hero-grid">
+        <div class="hero-card app-card">
+          <h1>UFC Event Management System</h1>
+          <p>Manage UFC event registration, member bookings, seat availability, and admin operations from one streamlined system.</p>
+          <div class="feature-chips">
+            <span>User Authentication</span>
+            <span>Seat Quotas</span>
+            <span>Admin CRUD</span>
+            <span>MySQL Schema</span>
+          </div>
+          <div class="action-row">
+            <button class="btn nav-trigger" data-screen="register" type="button">Create Member</button>
+            <button class="btn secondary nav-trigger" data-screen="adminLogin" type="button">Admin Access</button>
+          </div>
+        </div>
+
+        <aside class="panel app-card">
+          <div class="panel-head">
+            <span>Live Event Preview</span>
+            <strong id="homeTotalSeats">0 seats left</strong>
+          </div>
+          <div class="event-list" id="homeEvents"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-register">
+      <div class="auth-layout">
+        <aside class="auth-info app-card">
+          <h1>Create Account</h1>
+          <p>Create a member profile to access event booking and profile management.</p>
+          <button class="text-link nav-trigger" data-screen="login" type="button">Already have an account? Sign in</button>
+        </aside>
+        <form class="form-card app-card" id="registerForm">
+          <label>Username<input name="username" value="new_member" required></label>
+          <label>Email<input name="email" type="email" value="new.member@example.com" required></label>
+          <label>Password<input name="password" value="member123" type="password" minlength="8" required></label>
+          <label>Confirm Password<input name="confirm_password" value="member123" type="password" minlength="8" required></label>
+          <label>Nationality<select name="nationality" data-nationality-select required></select></label>
+          <label>Gender
+            <select name="gender" required>
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+          </label>
+          <button class="btn" type="submit">Register</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-login">
+      <div class="auth-layout">
+        <aside class="auth-info app-card">
+          <h1>Member Access</h1>
+          <p>Sign in to view the member dashboard and manage event registration.</p>
+          <button class="text-link nav-trigger" data-screen="register" type="button">Create a new member</button>
+        </aside>
+        <form class="form-card app-card" id="loginForm">
+          <label>Username<input name="username" value="ahmed_member" required></label>
+          <label>Password<input name="password" value="member123" type="password" required></label>
+          <button class="btn" type="submit">Sign In</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-memberDashboard">
+      <div class="dashboard-grid">
+        <section class="decision-panel app-card">
+          <h1>Welcome, <span id="memberName">Member</span></h1>
+          <div class="pill-row">
+            <span id="memberEmail">member@example.com</span>
+            <span id="memberBooking">No event booked yet</span>
+          </div>
+          <div class="action-row">
+            <button class="btn nav-trigger" data-screen="booking" type="button">Open Booking</button>
+            <button class="btn secondary nav-trigger" data-screen="profile" type="button">Update Profile</button>
+          </div>
+        </section>
+
+        <section class="metric-grid">
+          <div><span>Current Booking</span><strong id="metricBooking">None</strong></div>
+          <div><span>Available Events</span><strong id="metricEvents">0</strong></div>
+          <div><span>Seats Left</span><strong id="metricSeats">0</strong></div>
+        </section>
+      </div>
+      <section class="timeline-card app-card">
+        <h2>Member Journey</h2>
+        <div class="timeline">
+          <div><span>01</span><strong>Account created</strong><p>Member profile details are prepared for event registration.</p></div>
+          <div><span>02</span><strong>Event selected</strong><p>Booking updates the selected event and seat count.</p></div>
+          <div><span>03</span><strong>Profile managed</strong><p>Member details can be updated from the dashboard.</p></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="screen" id="screen-booking">
+      <div class="section-head">
+        <h1>Book Event</h1>
+        <p>Select one UFC event. The seat count updates instantly so viewers can see the registration logic.</p>
+      </div>
+      <div class="booking-list" id="bookingEvents"></div>
+      <section class="confirmation-card app-card" id="bookingConfirmation">
+        <h2>Booking Summary</h2>
+        <p id="bookingSummaryText">No event selected yet. Choose an event above to preview the confirmation state.</p>
+      </section>
+      <div class="action-row footer-actions">
+        <button class="btn secondary nav-trigger" data-screen="memberDashboard" type="button">Back to Dashboard</button>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-profile">
+      <div class="auth-layout">
+        <aside class="auth-info app-card">
+          <h1>Update Profile</h1>
+          <p>Edit member profile details and return to the dashboard.</p>
+        </aside>
+        <form class="form-card app-card" id="profileForm">
+          <label>Username<input name="username" required></label>
+          <label>Email<input name="email" type="email" required></label>
+          <label>Nationality<select name="nationality" data-nationality-select required></select></label>
+          <label>Current Password<input name="current_password" value="member123" type="password" required></label>
+          <label>New Password<input name="new_password" type="password" placeholder="Leave blank to keep current password"></label>
+          <button class="btn" type="submit">Save Profile</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-adminLogin">
+      <div class="auth-layout">
+        <aside class="auth-info app-card">
+          <h1>Admin Access</h1>
+          <p>Open the admin side to manage users, events, quotas, and booking capacity.</p>
+        </aside>
+        <form class="form-card app-card" id="adminLoginForm">
+          <label>Admin Username<input value="admin" required></label>
+          <label>Password<input value="admin123" type="password" required></label>
+          <button class="btn" type="submit">Open Admin Dashboard</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-adminDashboard">
+      <section class="decision-panel app-card">
+        <h1>Admin Control Center</h1>
+        <div class="pill-row">
+          <span>Signed in as admin</span>
+          <span>System status: online</span>
+        </div>
+        <div class="action-row">
+          <button class="btn nav-trigger" data-screen="manageUsers" type="button">Manage Users</button>
+          <button class="btn secondary nav-trigger" data-screen="manageEvents" type="button">Manage Events</button>
+        </div>
+      </section>
+      <section class="metric-grid admin-metrics">
+        <div><span>Member Accounts</span><strong id="adminUsers">0</strong></div>
+        <div><span>Booked Members</span><strong id="adminBooked">0</strong></div>
+        <div><span>Event Setup</span><strong id="adminEvents">0</strong></div>
+        <div><span>Seats Left</span><strong id="adminSeats">0</strong></div>
+      </section>
+      <section class="timeline-card app-card">
+        <h2>Admin Capabilities</h2>
+        <div class="timeline">
+          <div><span>01</span><strong>Manage events</strong><p>Create, edit, delete, and monitor event capacity.</p></div>
+          <div><span>02</span><strong>Manage users</strong><p>Review member accounts and event registrations.</p></div>
+          <div><span>03</span><strong>Track availability</strong><p>See booked members and remaining seats instantly.</p></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="screen" id="screen-manageEvents">
+      <div class="section-head">
+        <h1>Manage Events</h1>
+        <p>Create events, update quotas, and delete events from the admin table.</p>
+      </div>
+      <form class="inline-form" id="addEventForm">
+        <input name="name" placeholder="Event name" required>
+        <input name="quota" type="number" min="1" placeholder="Quota" required>
+        <button class="btn" type="submit">Add Event</button>
+      </form>
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>Quota</th><th>Registered</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody id="eventsTable"></tbody>
+        </table>
+      </div>
+      <div class="action-row footer-actions">
+        <button class="btn" id="saveEventChanges" type="button">Update All Events</button>
+        <button class="btn secondary nav-trigger" data-screen="adminDashboard" type="button">Back to Admin</button>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-manageUsers">
+      <div class="section-head">
+        <h1>Manage Users</h1>
+        <p>Review registered users and their selected event.</p>
+      </div>
+      <form class="inline-form search-form" id="userSearchForm">
+        <input name="query" placeholder="Search username, email, or nationality">
+        <button class="btn" type="submit">Search</button>
+        <button class="btn secondary" id="clearUserSearch" type="button">Clear Filter</button>
+      </form>
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Username</th><th>Email</th><th>Nationality</th><th>Registered Event</th><th>Action</th></tr>
+          </thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+      <div class="action-row footer-actions">
+        <button class="btn secondary nav-trigger" data-screen="adminDashboard" type="button">Back to Admin</button>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-source">
+      <section class="decision-panel app-card">
+        <h1>Project Source Code</h1>
+        <p>Review the complete PHP/MySQL application source code, database setup, and implementation files in the GitHub repository.</p>
+        <div class="action-row">
+          <a class="btn" href="https://github.com/AAAprog/ufc-event-system" target="_blank" rel="noreferrer">Open GitHub Repo</a>
+          <button class="btn secondary" id="resetDemo" type="button">Reset Data</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
