@@ -62,7 +62,13 @@ function loadState() {
   }
 
   try {
-    return JSON.parse(saved);
+    const savedState = JSON.parse(saved);
+
+    if (!Array.isArray(savedState.events) || savedState.events.length === 0) {
+      savedState.events = structuredClone(defaultState.events);
+    }
+
+    return savedState;
   } catch {
     localStorage.removeItem(storageKey);
     return structuredClone(defaultState);
