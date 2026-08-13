@@ -38,6 +38,7 @@ const nationalities = [
 
 let state = loadState();
 let userSearchQuery = "";
+let pendingDeletion = null;
 
 state.users = state.users.map((user) => ({
   password: "member123",
@@ -87,6 +88,43 @@ function showToast(message) {
   }, 2200);
 }
 
+function openDeleteDialog(deletion) {
+  pendingDeletion = deletion;
+  const dialog = document.getElementById("confirmDialog");
+  document.getElementById("confirmDialogTitle").textContent = `Delete ${deletion.label}?`;
+  document.getElementById("confirmDialogMessage").textContent = deletion.message;
+  dialog.classList.add("is-open");
+  dialog.setAttribute("aria-hidden", "false");
+  document.getElementById("confirmDelete").focus();
+}
+
+function closeDeleteDialog() {
+  pendingDeletion = null;
+  const dialog = document.getElementById("confirmDialog");
+  dialog.classList.remove("is-open");
+  dialog.setAttribute("aria-hidden", "true");
+}
+
+function deleteEvent(eventId) {
+  state.events = state.events.filter((item) => item.id !== eventId);
+  state.users = state.users.map((user) => user.registeredEvent === eventId ? { ...user, registeredEvent: null } : user);
+  saveState();
+  render();
+  showToast("Event deleted.");
+}
+
+function deleteUser(userId) {
+  const user = state.users.find((item) => item.id === userId);
+  const bookedEvent = user ? eventById(user.registeredEvent) : null;
+  if (bookedEvent) bookedEvent.registered = Math.max(bookedEvent.registered - 1, 0);
+  state.users = state.users.filter((item) => item.id !== userId);
+  if (state.currentUserId === userId) {
+    state.currentUserId = state.users[0]?.id || null;
+  }
+  saveState();
+  render();
+  showToast("User deleted.");
+}
 function navigate(screen) {
   document.querySelectorAll(".screen").forEach((item) => {
     item.classList.toggle("is-active", item.id === `screen-${screen}`);
@@ -249,6 +287,18 @@ function render() {
 }
 
 document.addEventListener("click", (event) => {
+  if (event.target.closest("[data-close-confirm]") || event.target.id === "cancelDelete") {
+    closeDeleteDialog();
+    return;
+  }
+
+  if (event.target.id === "confirmDelete" && pendingDeletion) {
+    const deletion = pendingDeletion;
+    closeDeleteDialog();
+    if (deletion.type === "event") deleteEvent(deletion.id);
+    if (deletion.type === "user") deleteUser(deletion.id);
+    return;
+  }
   const nav = event.target.closest(".nav-trigger");
   if (nav) {
     navigate(nav.dataset.screen);
@@ -280,14 +330,14 @@ document.addEventListener("click", (event) => {
   if (deleteButton) {
     const eventId = Number(deleteButton.dataset.deleteEvent);
     const selectedEvent = eventById(eventId);
-    if (selectedEvent && !window.confirm(`Delete "${selectedEvent.name}"? Linked registrations will be cleared.`)) {
-      return;
+    if (selectedEvent) {
+      openDeleteDialog({
+        type: "event",
+        id: eventId,
+        label: selectedEvent.name,
+        message: `Delete "${selectedEvent.name}"? Linked registrations will be cleared.`
+      });
     }
-    state.events = state.events.filter((item) => item.id !== eventId);
-    state.users = state.users.map((user) => user.registeredEvent === eventId ? { ...user, registeredEvent: null } : user);
-    saveState();
-    render();
-    showToast("Event deleted.");
     return;
   }
 
@@ -295,18 +345,14 @@ document.addEventListener("click", (event) => {
   if (deleteUserButton) {
     const userId = Number(deleteUserButton.dataset.deleteUser);
     const user = state.users.find((item) => item.id === userId);
-    if (user && !window.confirm(`Delete "${user.username}"? Any linked registration will be cleared.`)) {
-      return;
+    if (user) {
+      openDeleteDialog({
+        type: "user",
+        id: userId,
+        label: user.username,
+        message: `Delete "${user.username}"? Any linked registration will be cleared.`
+      });
     }
-    const bookedEvent = user ? eventById(user.registeredEvent) : null;
-    if (bookedEvent) bookedEvent.registered = Math.max(bookedEvent.registered - 1, 0);
-    state.users = state.users.filter((item) => item.id !== userId);
-    if (state.currentUserId === userId) {
-      state.currentUserId = state.users[0]?.id || null;
-    }
-    saveState();
-    render();
-    showToast("User deleted.");
     return;
   }
 
@@ -493,3 +539,7 @@ document.getElementById("addEventForm").addEventListener("submit", (event) => {
 
 populateNationalityMenus();
 render();
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && pendingDeletion) closeDeleteDialog();
+});

@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="modal.css">
 </head>
 <body>
   <header class="topbar">
@@ -259,6 +260,18 @@
     </section>
   </main>
 
+  <div class="confirm-dialog" id="confirmDialog" aria-hidden="true">
+    <div class="confirm-dialog__backdrop" data-close-confirm></div>
+    <section class="confirm-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle" aria-describedby="confirmDialogMessage">
+      <span class="confirm-dialog__eyebrow">Confirm deletion</span>
+      <h2 id="confirmDialogTitle">Delete item?</h2>
+      <p id="confirmDialogMessage"></p>
+      <div class="confirm-dialog__actions">
+        <button class="btn secondary" id="cancelDelete" type="button">Cancel</button>
+        <button class="btn confirm-dialog__delete" id="confirmDelete" type="button">Delete</button>
+      </div>
+    </section>
+  </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="app.js"></script>
 </body>
