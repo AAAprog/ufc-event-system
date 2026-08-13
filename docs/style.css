@@ -147,8 +147,18 @@ p {
   grid-template-columns: 1fr;
 }
 
+.app-shell:has(#screen-home.is-active) {
+  width: min(calc(100% - 64px), 1560px);
+}
+
 #screen-home .hero-card h1 {
   max-width: 22ch;
+}
+
+#screen-home .panel {
+  width: min(560px, 100%);
+  aspect-ratio: 1;
+  justify-self: center;
 }
 
 .auth-layout {
@@ -768,6 +778,14 @@ td:last-child {
 @media (max-width: 620px) {
   .app-shell {
     width: min(100%, calc(100% - 20px));
+  }
+
+  .app-shell:has(#screen-home.is-active) {
+    width: min(100%, calc(100% - 20px));
+  }
+
+  #screen-home .panel {
+    aspect-ratio: auto;
   }
 
   .hero-card,
