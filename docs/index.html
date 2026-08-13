@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="modal.css">
+  <link rel="stylesheet" href="member-dashboard.css">
 </head>
 <body>
   <header class="topbar">
@@ -98,7 +99,6 @@
         <section class="decision-panel app-card">
           <h1>Welcome, <span id="memberName">Member</span></h1>
           <div class="pill-row">
-            <span id="memberEmail">member@example.com</span>
             <span id="memberBooking">No event booked yet</span>
           </div>
           <div class="action-row">
@@ -107,10 +107,9 @@
           </div>
         </section>
 
-        <section class="metric-grid">
+        <section class="metric-grid member-metrics">
           <div><span>Current Booking</span><strong id="metricBooking">None</strong></div>
           <div><span>Available Events</span><strong id="metricEvents">0</strong></div>
-          <div><span>Seats Left</span><strong id="metricSeats">0</strong></div>
         </section>
       </div>
       <section class="timeline-card app-card">

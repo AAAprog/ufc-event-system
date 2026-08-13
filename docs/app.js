@@ -197,11 +197,9 @@ function renderMember() {
   const user = currentUser();
   const bookedEvent = eventById(user.registeredEvent);
   document.getElementById("memberName").textContent = user.username;
-  document.getElementById("memberEmail").textContent = user.email;
   document.getElementById("memberBooking").textContent = bookedEvent ? `Booked: ${bookedEvent.name}` : "No event booked yet";
   document.getElementById("metricBooking").textContent = bookedEvent ? bookedEvent.name : "None";
   document.getElementById("metricEvents").textContent = state.events.length;
-  document.getElementById("metricSeats").textContent = totalSeatsLeft();
 
   const profileForm = document.getElementById("profileForm");
   profileForm.username.value = user.username;
