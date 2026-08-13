@@ -159,6 +159,8 @@ p {
 #screen-home .panel {
   width: min(640px, 100%);
   justify-self: center;
+  align-content: start;
+  padding-top: 22px;
 }
 
 #screen-home .hero-card {
