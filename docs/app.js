@@ -213,30 +213,8 @@ function renderMember() {
   profileForm.nationality.value = user.nationality;
 }
 
-function renderBooking() {
-  const user = currentUser();
-  const bookedEvent = eventById(user.registeredEvent);
-  document.getElementById("bookingEvents").innerHTML = state.events.map((event) => {
-    const left = Math.max(event.quota - event.registered, 0);
-    const isBooked = user.registeredEvent === event.id;
-    const disabled = left === 0 && !isBooked;
-    return `
-      <article class="booking-card">
-        <div>
-          <h3>${event.name}</h3>
-          <p>${left} seats left · ${event.registered}/${event.quota} booked</p>
-        </div>
-        <button class="btn ${isBooked ? "secondary" : ""}" data-book="${event.id}" ${disabled ? "disabled" : ""} type="button">
-          ${isBooked ? "Current Event" : user.registeredEvent ? "Switch Event" : "Book Event"}
-        </button>
-      </article>
-    `;
-  }).join("");
-
-  document.getElementById("bookingSummaryText").textContent = bookedEvent
-    ? `Confirmed: ${user.username} is registered for ${bookedEvent.name}. Admin metrics and event capacity update automatically.`
-    : "No event selected yet. Choose an event above to preview the confirmation state.";
-}
+// renderBooking() lives in booking.js (multi-step checkout).
+function renderBooking() {}
 
 function renderAdmin() {
   const bookedUsers = state.users.filter((user) => user.registeredEvent !== null).length;

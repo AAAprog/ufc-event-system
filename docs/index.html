@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="modal.css">
   <link rel="stylesheet" href="member-dashboard.css">
+  <link rel="stylesheet" href="booking.css">
 </head>
 <body>
   <header class="topbar">
@@ -123,17 +124,14 @@
     </section>
 
     <section class="screen" id="screen-booking">
-      <div class="section-head">
-        <h1>Book Event</h1>
-        <p>Select one UFC event. The seat count updates instantly so viewers can see the registration logic.</p>
-      </div>
-      <div class="booking-list" id="bookingEvents"></div>
-      <section class="confirmation-card app-card" id="bookingConfirmation">
-        <h2>Booking Summary</h2>
-        <p id="bookingSummaryText">No event selected yet. Choose an event above to preview the confirmation state.</p>
-      </section>
-      <div class="action-row footer-actions">
-        <button class="btn secondary nav-trigger" data-screen="memberDashboard" type="button">Back to Dashboard</button>
+      <div class="bk" id="bookingApp">
+        <ol class="bk-steps" aria-label="Booking progress">
+          <li data-step="1"><span>1</span>Event</li>
+          <li data-step="2"><span>2</span>Seats</li>
+          <li data-step="3"><span>3</span>Payment</li>
+          <li data-step="4"><span>4</span>Ticket</li>
+        </ol>
+        <div class="bk-stage" id="bookingStage" aria-live="polite"></div>
       </div>
     </section>
 
@@ -273,5 +271,6 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="app.js"></script>
+  <script src="booking.js"></script>
 </body>
 </html>
