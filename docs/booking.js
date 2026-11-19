@@ -266,6 +266,7 @@ function stepPayment() {
         <div class="bk-wallets">
           <button type="button" class="bk-wallet" data-wallet="Apple Pay">${ic("phone")}Apple Pay</button>
           <button type="button" class="bk-wallet" data-wallet="Google Pay">${ic("wallet")}Google Pay</button>
+          <button type="button" class="bk-wallet" data-wallet="mada Pay">${ic("card")}mada Pay</button>
         </div>
         <p class="bk-or"><span>or pay by card</span></p>
         <label><span class="bk-lbl">${ic("user")}Name on card</span><input name="name" autocomplete="cc-name" value="${user.username.replace(/_/g, " ")}" required></label>
@@ -336,7 +337,8 @@ function stepTicket() {
         <div class="bk-ticket-stub">${qrSvg(b.ref)}<small>Scan at the gate</small></div>
       </article>
       <div class="action-row">
-        <button class="btn" type="button" id="addCalendar">${ic("calendar")}Add to calendar</button>
+        <button class="btn" type="button" id="addWallet">${ic("wallet")}Add to Wallet</button>
+        <button class="btn secondary" type="button" id="addCalendar">${ic("calendar")}Add to calendar</button>
         <button class="btn secondary nav-trigger" data-screen="memberDashboard" type="button">${ic("home")}Go to dashboard</button>
       </div>
     </div>
@@ -362,7 +364,7 @@ function renderBooking() {
   });
   document.querySelector(".bk-steps").style.setProperty("--progress", `${((flow.step - 1) / 3) * 100}%`);
 
-  if (flow.step === 3) startHold(); else stopHold();
+  if (flow.step === 3 || (flow.step === 2 && flow.seats.length)) startHold(); else stopHold();
 }
 
 function bumpTotals() {
@@ -386,6 +388,8 @@ function startHold() {
     if (s === 0) {
       stopHold();
       flow.holdEnds = 0;
+      flow.seats = [];
+      flow.qty = 0;
       showToast("Your seat hold expired. Choose your seats again.");
       goStep(2);
     }

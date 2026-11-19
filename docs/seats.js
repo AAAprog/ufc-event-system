@@ -8,6 +8,7 @@ flow.filter = "all";    // tier filter
 flow.sort = "best";     // "best" | "price"
 flow.mobileView = "map";
 
+const ACCESS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="4.5" r="1.8"/><path d="M12 7v6h5l2 5M12 10h4M9 10.5a5.5 5.5 0 1 0 6.2 7.5"/></svg>`;
 const TIER_ORDER = ["cage", "floor", "lower", "upper"];
 // Sides facing the cameras (long axis) give the straightest view.
 const SIDE_VIEW = [0.8, 1, 0.8, 0.65, 0.8, 1, 0.8, 0.65];
@@ -148,9 +149,10 @@ function seatGrid(event) {
       const id = `${row}${c}`;
       const sold = isSold(event, tier, flow.side, id);
       const on = flow.seats.includes(id);
+      const access = r === 0 && (c === 1 || c === cols);
       const curve = ((c - mid) ** 2) * (10 / (mid * mid));
-      seats += `<button type="button" class="bk-seat ${on ? "is-on" : ""}" style="--curve:${curve.toFixed(1)}px" data-seat="${id}" ${sold ? "disabled" : ""}
-        aria-pressed="${on}" aria-label="Row ${row}, seat ${c}${sold ? ", taken" : ""}">${on ? c : ""}</button>`;
+      seats += `<button type="button" class="bk-seat ${on ? "is-on" : ""} ${access ? "is-access" : ""}" style="--curve:${curve.toFixed(1)}px" data-seat="${id}" ${sold ? "disabled" : ""}
+        aria-pressed="${on}" aria-label="Row ${row}, seat ${c}${access ? ", wheelchair accessible" : ""}${sold ? ", taken" : ""}">${on ? c : access ? ACCESS_ICON : ""}</button>`;
       if (c === Math.ceil(cols / 2)) seats += `<span class="bk-aisle" aria-hidden="true"></span>`;
     }
     html += `<div class="bk-seat-row"><span class="bk-row-label">${row}</span>${seats}<span class="bk-row-label">${row}</span></div>`;
@@ -174,6 +176,7 @@ function seatGrid(event) {
           <li><i class="bk-seat"></i>Available</li>
           <li><i class="bk-seat is-on"></i>Your pick</li>
           <li><i class="bk-seat" data-sold></i>Taken</li>
+          <li><i class="bk-seat is-access">${ACCESS_ICON}</i>Accessible</li>
         </ul>
       </div>
     </div>`;
@@ -245,7 +248,7 @@ function stepSeats() {
         <div class="bk-seatpane">${seatGrid(event)}</div>
       </section>
       <div class="bk-side">
-        ${summaryCard(false)}
+        ${summaryCard(flow.seats.length > 0)}
         ${picked}
         <button class="btn bk-wide" type="button" data-step-to="3" ${flow.seats.length ? "" : "disabled"}>${ic("lock")}Continue to payment${ic("arrow")}</button>
       </div>
