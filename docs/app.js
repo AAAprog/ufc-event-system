@@ -131,17 +131,7 @@ function deleteUser(userId) {
   render();
   showToast("User deleted.");
 }
-const ADMIN_SCREENS = ["adminDashboard", "manageEvents", "manageUsers"];
-
 function navigate(screen) {
-  // Admin pages need an admin session; the login page skips ahead when already signed in.
-  if (ADMIN_SCREENS.includes(screen) && !state.adminSignedIn) {
-    showToast("Sign in as admin to open that page.");
-    screen = "adminLogin";
-  } else if (screen === "adminLogin" && state.adminSignedIn) {
-    screen = "adminDashboard";
-  }
-  document.body.classList.toggle("admin-mode", ADMIN_SCREENS.includes(screen));
   document.querySelectorAll(".screen").forEach((item) => {
     item.classList.toggle("is-active", item.id === `screen-${screen}`);
   });
@@ -223,8 +213,30 @@ function renderMember() {
   profileForm.nationality.value = user.nationality;
 }
 
-// renderBooking() lives in booking.js (multi-step checkout).
-function renderBooking() {}
+function renderBooking() {
+  const user = currentUser();
+  const bookedEvent = eventById(user.registeredEvent);
+  document.getElementById("bookingEvents").innerHTML = state.events.map((event) => {
+    const left = Math.max(event.quota - event.registered, 0);
+    const isBooked = user.registeredEvent === event.id;
+    const disabled = left === 0 && !isBooked;
+    return `
+      <article class="booking-card">
+        <div>
+          <h3>${event.name}</h3>
+          <p>${left} seats left · ${event.registered}/${event.quota} booked</p>
+        </div>
+        <button class="btn ${isBooked ? "secondary" : ""}" data-book="${event.id}" ${disabled ? "disabled" : ""} type="button">
+          ${isBooked ? "Current Event" : user.registeredEvent ? "Switch Event" : "Book Event"}
+        </button>
+      </article>
+    `;
+  }).join("");
+
+  document.getElementById("bookingSummaryText").textContent = bookedEvent
+    ? `Confirmed: ${user.username} is registered for ${bookedEvent.name}. Admin metrics and event capacity update automatically.`
+    : "No event selected yet. Choose an event above to preview the confirmation state.";
+}
 
 function renderAdmin() {
   const bookedUsers = state.users.filter((user) => user.registeredEvent !== null).length;
@@ -241,7 +253,7 @@ function renderTables() {
       <td><input class="table-input" value="${event.name}" data-event-name="${event.id}"></td>
       <td><input class="table-input number" type="number" min="${event.registered}" value="${event.quota}" data-event-quota="${event.id}"></td>
       <td>${event.registered}</td>
-      <td><span class="status status--${statusFor(event).toLowerCase().replace(" ", "-")}">${statusFor(event)}</span></td>
+      <td><span class="status">${statusFor(event)}</span></td>
       <td><button class="small-danger" data-delete-event="${event.id}" type="button">Delete</button></td>
     </tr>
   `).join("");
@@ -457,17 +469,12 @@ document.getElementById("loginForm").addEventListener("submit", (event) => {
 
 document.getElementById("adminLoginForm").addEventListener("submit", (event) => {
   event.preventDefault();
-  const form = event.currentTarget;
-  if (form.username.value.trim() !== "admin" || form.password.value !== "admin123") {
-    showToast("That username and password don't match an admin account.");
-    form.password.value = "";
-    form.password.focus();
+  const inputs = event.currentTarget.querySelectorAll("input");
+  if (inputs[0].value !== "admin" || inputs[1].value !== "admin123") {
+    showToast("Invalid admin credentials.");
     return;
   }
-  state.adminSignedIn = true;
-  saveState();
-  form.reset();
-  showToast("Signed in as admin.");
+  showToast("Admin signed in.");
   navigate("adminDashboard");
 });
 
@@ -539,10 +546,4 @@ render();
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && pendingDeletion) closeDeleteDialog();
-});
-document.getElementById("adminSignOut").addEventListener("click", () => {
-  state.adminSignedIn = false;
-  saveState();
-  showToast("Signed out of admin.");
-  navigate("home");
 });

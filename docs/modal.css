@@ -31,7 +31,7 @@
   border: 1px solid rgba(255, 42, 42, 0.38);
   border-radius: 18px;
   background:
-    linear-gradient(135deg, rgba(255, 42, 42, 0.15), rgba(17, 17, 17, 0.025)),
+    linear-gradient(135deg, rgba(255, 42, 42, 0.15), rgba(255, 255, 255, 0.025)),
     #160609;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.58);
   transform: translateY(8px) scale(0.98);
@@ -44,7 +44,7 @@
 
 .confirm-dialog__eyebrow {
   color: var(--gold);
-  font-family: var(--display);
+  font-family: Oswald, sans-serif;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.12em;
