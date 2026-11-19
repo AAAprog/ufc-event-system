@@ -895,3 +895,24 @@ td:last-child {
     padding-top: 88px;
   }
 }
+
+/* ---------- Real-site polish (keeps the original look) ---------- */
+.hero-lead { max-width: 52ch; margin: 14px 0 22px; color: var(--muted); font-size: 1.05rem; line-height: 1.6; }
+#screen-home .panel { width: 100%; }
+.event-meta { margin: 4px 0 2px; color: var(--gold); font-size: 0.86rem; font-weight: 600; }
+.empty-note { margin: 0; padding: 18px; border-radius: 16px; background: rgba(255, 255, 255, 0.04); color: var(--muted); text-align: center; }
+.timeline-card .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.timeline-card .panel-head h2 { margin: 0; }
+.link-btn { border: 0; background: none; color: var(--gold); font: inherit; font-weight: 700; cursor: pointer; }
+.pill-btn { padding: 7px 12px; border: 1px solid rgba(255, 82, 82, 0.35); border-radius: 999px; background: transparent; color: #fff; font: 700 0.72rem Inter, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; }
+.pill-btn:hover { background: rgba(255, 42, 42, 0.14); }
+.capacity-list { display: grid; gap: 16px; }
+.capacity-top { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.capacity-top span { color: var(--muted); font-size: 0.9rem; }
+.capacity-bar { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.capacity-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--red)); }
+.site-footer { margin-top: 40px; border-top: 1px solid rgba(255, 42, 42, 0.2); background: rgba(18, 5, 7, 0.6); }
+.site-footer-in { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 22px 0; color: var(--muted); font-size: 0.85rem; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 4px; }
+.footer-links button { min-height: 32px; padding: 6px 10px; text-transform: none; letter-spacing: 0; font-size: 0.85rem; }
+@media (max-width: 620px) { .site-footer-in { flex-direction: column; text-align: center; } }

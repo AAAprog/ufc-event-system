@@ -181,22 +181,51 @@ function statusFor(event) {
   return "Open";
 }
 
+// Display details for each event (date, venue, starting price).
+const EVENT_INFO = {
+  1: { date: "2026-12-12T20:00", venue: "Etihad Arena", city: "Abu Dhabi", price: 120 },
+  2: { date: "2027-01-23T21:00", venue: "Kingdom Arena", city: "Riyadh", price: 95 },
+  3: { date: "2027-02-20T19:30", venue: "Coca-Cola Arena", city: "Dubai", price: 70 }
+};
+
+function infoFor(event) {
+  return EVENT_INFO[event.id] || { date: "", venue: "Venue to be announced", city: "", price: null };
+}
+
+function eventMeta(event) {
+  const info = infoFor(event);
+  const when = info.date
+    ? new Date(info.date).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+    : "Date to be announced";
+  return `${when} · ${info.venue}${info.city ? `, ${info.city}` : ""}`;
+}
+
+function seatLine(event) {
+  const left = Math.max(event.quota - event.registered, 0);
+  const price = infoFor(event).price;
+  return `${left === 0 ? "Sold out" : `${left} seats left`}${price ? ` · From $${price}` : ""}`;
+}
+
 function eventCard(event) {
   const left = Math.max(event.quota - event.registered, 0);
   return `
     <article class="event-card">
       <div>
         <h3>${event.name}</h3>
-        <p>${left} seats left · ${event.registered}/${event.quota} booked</p>
+        <p class="event-meta">${eventMeta(event)}</p>
+        <p>${seatLine(event)}</p>
       </div>
-      <strong class="${statusFor(event) === "Low Seats" ? "low" : ""}">${statusFor(event)}</strong>
+      <strong class="${statusFor(event) === "Low Seats" ? "low" : ""}">${left === 0 ? "Sold out" : statusFor(event)}</strong>
     </article>
   `;
 }
 
 function renderHome() {
   document.getElementById("homeTotalSeats").textContent = `${totalSeatsLeft()} seats left`;
-  document.getElementById("homeEvents").innerHTML = state.events.map(eventCard).join("");
+  document.getElementById("homeEvents").innerHTML = state.events.map(eventCard).join("") || `<p class="empty-note">No fight nights are on sale right now. Check back soon.</p>`;
+  document.getElementById("heroEventCount").textContent = state.events.length;
+  const next = state.events.map((e) => infoFor(e).date).filter(Boolean).sort()[0];
+  document.getElementById("heroNextDate").textContent = next ? new Date(next).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "TBA";
 }
 
 function renderMember() {
@@ -206,6 +235,7 @@ function renderMember() {
   document.getElementById("memberBooking").textContent = bookedEvent ? `Booked: ${bookedEvent.name}` : "No event booked yet";
   document.getElementById("metricBooking").textContent = bookedEvent ? bookedEvent.name : "None";
   document.getElementById("metricEvents").textContent = state.events.length;
+  document.getElementById("memberEvents").innerHTML = state.events.map(eventCard).join("") || `<p class="empty-note">No fight nights are on sale right now.</p>`;
 
   const profileForm = document.getElementById("profileForm");
   profileForm.username.value = user.username;
@@ -224,21 +254,36 @@ function renderBooking() {
       <article class="booking-card">
         <div>
           <h3>${event.name}</h3>
-          <p>${left} seats left · ${event.registered}/${event.quota} booked</p>
+          <p class="event-meta">${eventMeta(event)}</p>
+          <p>${seatLine(event)}</p>
         </div>
         <button class="btn ${isBooked ? "secondary" : ""}" data-book="${event.id}" ${disabled ? "disabled" : ""} type="button">
-          ${isBooked ? "Current Event" : user.registeredEvent ? "Switch Event" : "Book Event"}
+          ${isBooked ? "Booked" : left === 0 ? "Sold out" : user.registeredEvent ? "Switch to this" : "Book now"}
         </button>
       </article>
     `;
   }).join("");
 
   document.getElementById("bookingSummaryText").textContent = bookedEvent
-    ? `Confirmed: ${user.username} is registered for ${bookedEvent.name}. Admin metrics and event capacity update automatically.`
-    : "No event selected yet. Choose an event above to preview the confirmation state.";
+    ? `You're booked for ${bookedEvent.name} (${eventMeta(bookedEvent)}). You can switch to another fight night any time before it sells out.`
+    : "You haven't booked a fight night yet. Pick one above to reserve your seat.";
+}
+
+function renderCapacity() {
+  const list = document.getElementById("adminCapacity");
+  if (!list) return;
+  list.innerHTML = state.events.map((event) => {
+    const pct = event.quota ? Math.round((event.registered / event.quota) * 100) : 0;
+    return `
+      <div class="capacity-row">
+        <div class="capacity-top"><strong>${event.name}</strong><span>${event.registered} / ${event.quota} · ${pct}%</span></div>
+        <div class="capacity-bar" role="img" aria-label="${pct}% full"><i style="width:${Math.min(100, pct)}%"></i></div>
+      </div>`;
+  }).join("") || `<p class="empty-note">No events yet. Add one from Manage events.</p>`;
 }
 
 function renderAdmin() {
+  renderCapacity();
   const bookedUsers = state.users.filter((user) => user.registeredEvent !== null).length;
   document.getElementById("adminUsers").textContent = state.users.length;
   document.getElementById("adminBooked").textContent = bookedUsers;
@@ -465,6 +510,11 @@ document.getElementById("loginForm").addEventListener("submit", (event) => {
   saveState();
   showToast("Signed in.");
   navigate("memberDashboard");
+});
+
+document.getElementById("adminSignOut").addEventListener("click", () => {
+  showToast("Signed out.");
+  navigate("home");
 });
 
 document.getElementById("adminLoginForm").addEventListener("submit", (event) => {
