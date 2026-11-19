@@ -131,7 +131,17 @@ function deleteUser(userId) {
   render();
   showToast("User deleted.");
 }
+const ADMIN_SCREENS = ["adminDashboard", "manageEvents", "manageUsers"];
+
 function navigate(screen) {
+  // Admin pages need an admin session; the login page skips ahead when already signed in.
+  if (ADMIN_SCREENS.includes(screen) && !state.adminSignedIn) {
+    showToast("Sign in as admin to open that page.");
+    screen = "adminLogin";
+  } else if (screen === "adminLogin" && state.adminSignedIn) {
+    screen = "adminDashboard";
+  }
+  document.body.classList.toggle("admin-mode", ADMIN_SCREENS.includes(screen));
   document.querySelectorAll(".screen").forEach((item) => {
     item.classList.toggle("is-active", item.id === `screen-${screen}`);
   });
@@ -447,12 +457,17 @@ document.getElementById("loginForm").addEventListener("submit", (event) => {
 
 document.getElementById("adminLoginForm").addEventListener("submit", (event) => {
   event.preventDefault();
-  const inputs = event.currentTarget.querySelectorAll("input");
-  if (inputs[0].value !== "admin" || inputs[1].value !== "admin123") {
-    showToast("Invalid admin credentials.");
+  const form = event.currentTarget;
+  if (form.username.value.trim() !== "admin" || form.password.value !== "admin123") {
+    showToast("That username and password don't match an admin account.");
+    form.password.value = "";
+    form.password.focus();
     return;
   }
-  showToast("Admin signed in.");
+  state.adminSignedIn = true;
+  saveState();
+  form.reset();
+  showToast("Signed in as admin.");
   navigate("adminDashboard");
 });
 
@@ -524,4 +539,10 @@ render();
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && pendingDeletion) closeDeleteDialog();
+});
+document.getElementById("adminSignOut").addEventListener("click", () => {
+  state.adminSignedIn = false;
+  saveState();
+  showToast("Signed out of admin.");
+  navigate("home");
 });

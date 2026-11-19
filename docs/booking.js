@@ -8,7 +8,7 @@ const EVENT_META = {
 };
 
 const TIERS = [
-  { id: "cage", name: "Cageside", note: "Rows A–C, steps from the Octagon", mult: 4, share: 0.08 },
+  { id: "cage", name: "Cageside", note: "Rows A–B, steps from the Octagon", mult: 4, share: 0.08 },
   { id: "floor", name: "Floor", note: "Floor seating around the cage", mult: 2.2, share: 0.22 },
   { id: "lower", name: "Lower bowl", note: "Raised view of the whole fight", mult: 1.3, share: 0.35 },
   { id: "upper", name: "Upper bowl", note: "Best value in the arena", mult: 1, share: 0.35 }
@@ -50,7 +50,7 @@ const PROMOS = { FIGHT10: 0.1, OCTAGON20: 0.2 };
 const HOLD_SECONDS = 600;
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const flow = { step: 1, eventId: null, tier: "lower", qty: 2, promo: null, holdEnds: 0, timer: null, paying: false, booking: null };
+const flow = { step: 1, eventId: null, tier: "lower", side: null, seats: [], qty: 0, promo: null, holdEnds: 0, timer: null, paying: false, booking: null };
 
 const money = (n) => `$${n.toFixed(2)}`;
 
@@ -122,23 +122,86 @@ function stepEvents() {
 }
 
 /* ---------- Step 2: seats ---------- */
+const RINGS = { cage: [58, 34], floor: [86, 60], lower: [118, 88], upper: [150, 120] };
+const TIER_CODE = { cage: "C", floor: "F", lower: "L", upper: "U" };
+const SEAT_GRID = { cage: [2, 8], floor: [3, 10], lower: [4, 12], upper: [5, 14] };
+const SIDE_NAMES = ["South-east", "South", "South-west", "West", "North-west", "North", "North-east", "East"];
+
+function hashStr(str) {
+  let h = 2166136261;
+  for (const c of str) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
+  return h / 4294967295;
+}
+
+function sectionCode(tier, side) { return `${TIER_CODE[tier]}${side + 1}`; }
+
+function isSold(event, tier, side, seatId) {
+  const occupancy = Math.min(0.95, event.registered / event.quota + (tier === "cage" ? 0.15 : 0));
+  return hashStr(`${event.id}-${tier}-${side}-${seatId}`) < occupancy;
+}
+
+function sectionFree(event, tier, side) {
+  const [rows, cols] = SEAT_GRID[tier];
+  let free = 0;
+  for (let r = 0; r < rows; r += 1) for (let c = 1; c <= cols; c += 1) {
+    if (!isSold(event, tier, side, `${String.fromCharCode(65 + r)}${c}`)) free += 1;
+  }
+  return free;
+}
+
 function octagonSvg(event) {
-  const rings = [
-    { id: "upper", r: 150 }, { id: "lower", r: 118 }, { id: "floor", r: 86 }, { id: "cage", r: 58 }
-  ];
-  const oct = (r) => Array.from({ length: 8 }, (_, i) => {
+  const pt = (r, i) => {
     const a = Math.PI / 8 + (i * Math.PI) / 4;
     return `${(160 + r * Math.cos(a)).toFixed(1)},${(160 + r * Math.sin(a)).toFixed(1)}`;
-  }).join(" ");
+  };
+  const oct = (r) => Array.from({ length: 8 }, (_, i) => pt(r, i)).join(" ");
+  const segs = Object.entries(RINGS).map(([tier, [ro, ri]]) => Array.from({ length: 8 }, (_, side) => {
+    const free = sectionFree(event, tier, side);
+    const on = flow.tier === tier && flow.side === side;
+    const name = `${TIERS.find((t) => t.id === tier).name} section ${sectionCode(tier, side)}, ${SIDE_NAMES[side]}, ${free} seats free`;
+    return `<polygon class="bk-seg bk-seg--${tier} ${on ? "is-on" : ""} ${free ? "" : "is-out"}" data-tier="${tier}" data-side="${side}"
+      points="${pt(ro, side)} ${pt(ro, side + 1)} ${pt(ri, side + 1)} ${pt(ri, side)}" tabindex="${free ? 0 : -1}" role="button" aria-pressed="${on}" aria-label="${name}"><title>${name}</title></polygon>`;
+  }).join("")).join("");
   return `
-    <svg class="bk-map" viewBox="0 0 320 320" role="group" aria-label="Arena seat map">
-      ${rings.map((ring) => {
-        const left = tierLeft(event, ring.id);
-        return `<polygon class="bk-ring ${flow.tier === ring.id ? "is-on" : ""} ${left === 0 ? "is-out" : ""}" data-tier="${ring.id}" points="${oct(ring.r)}" tabindex="${left ? 0 : -1}" role="button" aria-label="${TIERS.find((t) => t.id === ring.id).name}"></polygon>`;
-      }).join("")}
+    <svg class="bk-map ${flow.side !== null ? "has-pick" : ""}" viewBox="0 0 320 320" role="group" aria-label="Arena map. Choose a section around the Octagon.">
+      ${segs}
       <polygon class="bk-cage" points="${oct(30)}"></polygon>
-      <text x="160" y="164" text-anchor="middle">CAGE</text>
+      <text x="160" y="164" text-anchor="middle">OCTAGON</text>
     </svg>`;
+}
+
+function seatGrid(event) {
+  if (flow.side === null) {
+    return `<div class="bk-seat-empty">${ic("pin")}<p>Pick a section on the map to see its seats.</p></div>`;
+  }
+  const tier = flow.tier;
+  const [rows, cols] = SEAT_GRID[tier];
+  let html = "";
+  for (let r = 0; r < rows; r += 1) {
+    const row = String.fromCharCode(65 + r);
+    let seats = "";
+    for (let c = 1; c <= cols; c += 1) {
+      const id = `${row}${c}`;
+      const sold = isSold(event, tier, flow.side, id);
+      const on = flow.seats.includes(id);
+      seats += `<button type="button" class="bk-seat ${on ? "is-on" : ""}" data-seat="${id}" ${sold ? "disabled" : ""}
+        aria-pressed="${on}" aria-label="Row ${row}, seat ${c}${sold ? ", taken" : ""}">${on ? c : ""}</button>`;
+      if (c === Math.ceil(cols / 2)) seats += `<span class="bk-aisle" aria-hidden="true"></span>`;
+    }
+    html += `<div class="bk-seat-row"><span class="bk-row-label">${row}</span>${seats}<span class="bk-row-label">${row}</span></div>`;
+  }
+  return `
+    <div class="bk-seat-head">
+      <div><b>Section ${sectionCode(tier, flow.side)}</b><small>${TIERS.find((t) => t.id === tier).name} · ${SIDE_NAMES[flow.side]} side · ${money(priceFor(event, tier))} each</small></div>
+      ${flow.seats.length ? `<button type="button" class="bk-clear" data-clear-seats>Clear</button>` : ""}
+    </div>
+    <div class="bk-cage-edge">${ic("arrow", "bk-up")}Octagon this way</div>
+    <div class="bk-seats" role="group" aria-label="Seats in section ${sectionCode(tier, flow.side)}">${html}</div>
+    <ul class="bk-legend">
+      <li><i class="bk-seat"></i>Available</li>
+      <li><i class="bk-seat is-on"></i>Your pick</li>
+      <li><i class="bk-seat" data-sold></i>Taken</li>
+    </ul>`;
 }
 
 function summaryCard(withTimer) {
@@ -163,37 +226,31 @@ function summaryCard(withTimer) {
 function stepSeats() {
   const event = eventById(flow.eventId);
   const tiers = TIERS.map((tier) => {
-    const left = tierLeft(event, tier.id);
+    const free = Array.from({ length: 8 }, (_, side) => sectionFree(event, tier.id, side)).reduce((x, y) => x + y, 0);
     return `
-      <label class="bk-tier ${flow.tier === tier.id ? "is-on" : ""} ${left === 0 ? "is-out" : ""}">
-        <input type="radio" name="tier" value="${tier.id}" ${flow.tier === tier.id ? "checked" : ""} ${left === 0 ? "disabled" : ""}>
+      <button type="button" class="bk-tier ${flow.tier === tier.id ? "is-on" : ""}" data-tier-pick="${tier.id}" ${free ? "" : "disabled"}>
         <span class="bk-swatch bk-swatch--${tier.id}">${ic(TIER_ICONS[tier.id])}</span>
         <span class="bk-tier-text"><b>${tier.name}</b><small>${tier.note}</small></span>
-        <span class="bk-tier-price"><b>${money(priceFor(event, tier.id))}</b><small>${left ? `${left} left` : "Sold out"}</small></span>
-      </label>`;
+        <span class="bk-tier-price"><b>${money(priceFor(event, tier.id))}</b><small>${free ? `${free} free` : "Sold out"}</small></span>
+      </button>`;
   }).join("");
-  const maxQty = Math.min(6, tierLeft(event, flow.tier));
+  const picked = flow.seats.length
+    ? `<p class="bk-picked">${ic("seat")}<span>Section ${sectionCode(flow.tier, flow.side)} · Row ${[...new Set(flow.seats.map((x) => x[0]))].join(", ")} · Seat ${flow.seats.map((x) => x.slice(1)).join(", ")}</span></p>`
+    : `<p class="bk-picked is-empty">${ic("seat")}<span>No seats picked yet. You can pick up to 6.</span></p>`;
   return `
-    <header class="bk-head"><button class="bk-back" type="button" data-step-to="1">${ic("back")}Back to events</button><h1>${event.name}</h1><p>Tap a ring on the map or choose a tier from the list.</p></header>
+    <header class="bk-head"><button class="bk-back" type="button" data-step-to="1">${ic("back")}Back to events</button><h1>${event.name}</h1><p>Choose a section around the Octagon, then tap your exact seats.</p></header>
     <div class="bk-grid">
       <section class="app-card bk-pane">
         <div class="bk-seat-layout">
           ${octagonSvg(event)}
-          <div class="bk-tiers" role="radiogroup" aria-label="Seat tier">${tiers}</div>
+          <div class="bk-tiers" aria-label="Seat tiers">${tiers}</div>
         </div>
-        <div class="bk-qty">
-          <span>Tickets</span>
-          <div class="bk-stepper">
-            <button type="button" data-qty="-1" aria-label="Remove a ticket" ${flow.qty <= 1 ? "disabled" : ""}>${ic("minus")}</button>
-            <output aria-live="polite">${flow.qty}</output>
-            <button type="button" data-qty="1" aria-label="Add a ticket" ${flow.qty >= maxQty ? "disabled" : ""}>${ic("plus")}</button>
-          </div>
-          <small>Up to 6 per order</small>
-        </div>
+        <div class="bk-seatpane">${seatGrid(event)}</div>
       </section>
       <div class="bk-side">
         ${summaryCard(false)}
-        <button class="btn bk-wide" type="button" data-step-to="3" ${maxQty ? "" : "disabled"}>${ic("lock")}Continue to payment${ic("arrow")}</button>
+        ${picked}
+        <button class="btn bk-wide" type="button" data-step-to="3" ${flow.seats.length ? "" : "disabled"}>${ic("lock")}Continue to payment${ic("arrow")}</button>
       </div>
     </div>`;
 }
@@ -272,7 +329,7 @@ function stepTicket() {
           <dl>
             <div><dt>${ic("calendar")}Date</dt><dd>${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</dd></div>
             <div><dt>${ic("pin")}Venue</dt><dd>${m.venue}, ${m.city}</dd></div>
-            <div><dt>${ic("seat")}Seats</dt><dd>${b.tierName} × ${b.qty}</dd></div>
+            <div><dt>${ic("seat")}Seats</dt><dd>${b.tierName} · Sec ${b.section}<br>${b.seats.join(", ")}</dd></div>
             <div><dt>${ic("card")}Paid</dt><dd>${money(b.total)}</dd></div>
           </dl>
         </div>
@@ -408,12 +465,15 @@ function completeBooking(email) {
   const tier = TIERS.find((x) => x.id === flow.tier);
   flow.booking = {
     ref: `UFC-${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
-    eventId: event.id, eventName: event.name, tierName: tier.name, qty: flow.qty, total: t.total, email
+    eventId: event.id, eventName: event.name, tierName: tier.name, qty: flow.qty, total: t.total, email,
+    section: sectionCode(flow.tier, flow.side), seats: [...flow.seats]
   };
   state.bookings = [...(state.bookings || []), { ...flow.booking, userId: user.id, at: new Date().toISOString() }];
   saveState();
   flow.holdEnds = 0;
   flow.promo = null;
+  flow.seats = [];
+  flow.side = null;
   flow.step = 4;
   render();
 }
@@ -443,9 +503,10 @@ document.addEventListener("click", (e) => {
   if (pick) {
     flow.eventId = Number(pick.dataset.pickEvent);
     const event = eventById(flow.eventId);
-    flow.tier = TIERS.map((t) => t.id).reverse().find((id) => tierLeft(event, id) > 0) || "upper";
-    flow.tier = tierLeft(event, "lower") ? "lower" : flow.tier;
-    flow.qty = Math.min(2, Math.max(1, tierLeft(event, flow.tier)));
+    flow.tier = "lower";
+    flow.side = null;
+    flow.seats = [];
+    flow.qty = 0;
     flow.holdEnds = 0;
     goStep(2);
     return;
@@ -454,17 +515,32 @@ document.addEventListener("click", (e) => {
   const to = e.target.closest("[data-step-to]");
   if (to) { goStep(Number(to.dataset.stepTo)); return; }
 
-  const ring = e.target.closest(".bk-ring");
-  if (ring && !ring.classList.contains("is-out")) { selectTier(ring.dataset.tier); return; }
+  const seg = e.target.closest(".bk-seg");
+  if (seg && !seg.classList.contains("is-out")) { selectSection(seg.dataset.tier, Number(seg.dataset.side)); return; }
 
-  const qty = e.target.closest("[data-qty]");
-  if (qty) {
-    const max = Math.min(6, tierLeft(eventById(flow.eventId), flow.tier));
-    flow.qty = Math.max(1, Math.min(max, flow.qty + Number(qty.dataset.qty)));
-    renderBooking();
-    bumpTotals();
+  const tierBtn = e.target.closest("[data-tier-pick]");
+  if (tierBtn) {
+    const event = eventById(flow.eventId);
+    const id = tierBtn.dataset.tierPick;
+    const best = Array.from({ length: 8 }, (_, i) => i).sort((x, y) => sectionFree(event, id, y) - sectionFree(event, id, x))[0];
+    selectSection(id, best);
     return;
   }
+
+  const seat = e.target.closest("[data-seat]");
+  if (seat) {
+    const id = seat.dataset.seat;
+    if (flow.seats.includes(id)) flow.seats = flow.seats.filter((x) => x !== id);
+    else if (flow.seats.length >= 6) { showToast("You can pick up to 6 seats per order."); return; }
+    else flow.seats = [...flow.seats, id].sort((x, y) => x[0].localeCompare(y[0]) || Number(x.slice(1)) - Number(y.slice(1)));
+    flow.qty = flow.seats.length;
+    renderBooking();
+    bumpTotals();
+    document.querySelector(`[data-seat="${id}"]`)?.focus();
+    return;
+  }
+
+  if (e.target.closest("[data-clear-seats]")) { flow.seats = []; flow.qty = 0; renderBooking(); return; }
 
   if (e.target.id === "applyPromo") {
     const input = document.querySelector("#payForm [name=promo]");
@@ -486,22 +562,17 @@ document.addEventListener("click", (e) => {
   if (e.target.id === "addCalendar") downloadIcs();
 });
 
-function selectTier(id) {
-  flow.tier = id;
-  const max = Math.min(6, tierLeft(eventById(flow.eventId), id));
-  flow.qty = Math.max(1, Math.min(flow.qty, max));
+function selectSection(tier, side) {
+  if (flow.tier !== tier || flow.side !== side) { flow.seats = []; flow.qty = 0; }
+  flow.tier = tier;
+  flow.side = side;
   renderBooking();
-  bumpTotals();
-  document.querySelector(`.bk-tier input[value="${id}"]`)?.focus();
+  document.querySelector(`.bk-seg[data-tier="${tier}"][data-side="${side}"]`)?.focus();
 }
 
-document.addEventListener("change", (e) => {
-  if (e.target.name === "tier" && e.target.closest(".bk-tiers")) selectTier(e.target.value);
-});
-
 document.addEventListener("keydown", (e) => {
-  const ring = e.target.closest?.(".bk-ring");
-  if (ring && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); selectTier(ring.dataset.tier); }
+  const seg = e.target.closest?.(".bk-seg");
+  if (seg && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); selectSection(seg.dataset.tier, Number(seg.dataset.side)); }
 });
 
 document.addEventListener("input", (e) => {

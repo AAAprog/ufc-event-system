@@ -5,13 +5,14 @@
 }
 
 :root {
-  --bg: #050203;
-  --panel: rgba(18, 5, 7, 0.82);
-  --line: rgba(255, 255, 255, 0.09);
-  --red: #ff2a2a;
-  --gold: #ffcc00;
-  --text: #ffffff;
-  --muted: #c9bbbb;
+  --bg: #07050a;
+  --panel: rgba(24, 16, 19, 0.88);
+  --line: rgba(255, 255, 255, 0.08);
+  --red: #e8202a;
+  --gold: #f5b800;
+  --text: #f7f3f2;
+  --muted: #b9adaf;
+  --admin: #4f8cff;
 }
 
 body {
@@ -895,3 +896,34 @@ td:last-child {
     padding-top: 88px;
   }
 }
+
+/* Admin mode: its own nav and accent so staff always know where they are */
+.admin-nav { display: none; align-items: center; }
+body.admin-mode .topbar > nav:not(.admin-nav) { display: none; }
+body.admin-mode .admin-nav { display: flex; }
+body.admin-mode .topbar { border-bottom-color: rgba(79, 140, 255, 0.4); }
+body.admin-mode .brand { border-left-color: var(--admin); }
+.admin-badge {
+  padding: 4px 10px; margin-right: 6px; border-radius: 999px;
+  background: rgba(79, 140, 255, 0.15); color: #9dbdff;
+  font-size: 0.75rem; font-weight: 700;
+}
+.admin-nav button.is-active, .admin-nav button:hover { background: rgba(79, 140, 255, 0.15); }
+.admin-signout {
+  min-height: 38px; margin-left: 6px; padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 999px;
+  background: transparent; color: #fff; font: 700 0.82rem Inter, sans-serif; cursor: pointer;
+}
+.admin-signout:hover { border-color: var(--red); color: #ff8a8f; }
+.demo-hint { margin: 0; padding: 10px 12px; border-radius: 10px; background: rgba(79, 140, 255, 0.1); color: #b9cfff; font-size: 0.85rem; }
+
+.site-footer {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  max-width: 1200px; margin: 40px auto 0; padding: 20px 32px 32px;
+  border-top: 1px solid var(--line); color: var(--muted); font-size: 0.85rem;
+}
+.staff-link { border: 0; background: none; color: var(--muted); font: inherit; text-decoration: underline; cursor: pointer; }
+.staff-link:hover { color: #fff; }
+body.admin-mode .site-footer { display: none; }
+
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }

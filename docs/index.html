@@ -18,8 +18,15 @@
     <nav>
       <button class="nav-trigger is-active" data-screen="home" type="button">Home</button>
       <button class="nav-trigger" data-screen="login" type="button">Member</button>
-      <button class="nav-trigger" data-screen="adminLogin" type="button">Admin</button>
+      <button class="nav-trigger" data-screen="booking" type="button">Events</button>
       <button class="nav-trigger" data-screen="source" type="button">Source</button>
+    </nav>
+    <nav class="admin-nav" aria-label="Admin">
+      <span class="admin-badge">Admin</span>
+      <button class="nav-trigger" data-screen="adminDashboard" type="button">Dashboard</button>
+      <button class="nav-trigger" data-screen="manageEvents" type="button">Events</button>
+      <button class="nav-trigger" data-screen="manageUsers" type="button">Users</button>
+      <button class="admin-signout" id="adminSignOut" type="button">Sign out</button>
     </nav>
   </header>
 
@@ -163,9 +170,11 @@
             <h1>Admin access</h1>
             <p>Manage members, events, quotas, and booking capacity.</p>
           </div>
-          <label>Admin Username<input value="admin" required></label>
-          <label>Password<input value="admin123" type="password" required></label>
-          <button class="btn" type="submit">Open Admin Dashboard</button>
+          <label>Admin username<input name="username" autocomplete="username" placeholder="admin" required></label>
+          <label>Password<input name="password" type="password" autocomplete="current-password" placeholder="••••••••" required></label>
+          <p class="demo-hint">Demo login: <b>admin</b> / <b>admin123</b></p>
+          <button class="btn" type="submit">Sign in to admin</button>
+          <p class="auth-switch">Not staff? <button class="auth-switch-link nav-trigger" data-screen="home" type="button">Back to the site</button></p>
         </form>
       </div>
     </section>
@@ -256,6 +265,11 @@
       </section>
     </section>
   </main>
+
+  <footer class="site-footer">
+    <span>UFC Fight Night demo</span>
+    <button class="nav-trigger staff-link" data-screen="adminLogin" type="button">Staff sign-in</button>
+  </footer>
 
   <div class="confirm-dialog" id="confirmDialog" aria-hidden="true">
     <div class="confirm-dialog__backdrop" data-close-confirm></div>
