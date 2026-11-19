@@ -14,6 +14,36 @@ const TIERS = [
   { id: "upper", name: "Upper bowl", note: "Best value in the arena", mult: 1, share: 0.35 }
 ];
 
+
+// Icons: Lucide (ISC license), inlined so the preview has no external dependency.
+const ICONS = {
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  ticket: '<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/>',
+  seat: '<path d="M7 18v3M17 18v3M5 11V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5"/><path d="M3 13a2 2 0 0 1 4 0v1h10v-1a2 2 0 0 1 4 0v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
+  card: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  back: '<path d="m15 18-6-6 6-6"/>',
+  arrow: '<path d="M5 12h14M12 5l7 7-7 7"/>',
+  minus: '<path d="M5 12h14"/>',
+  plus: '<path d="M5 12h14M12 5v14"/>',
+  lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/><path d="m9 12 2 2 4-4"/>',
+  tag: '<path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4Z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/>',
+  timer: '<path d="M10 2h4M12 14l3-3"/><circle cx="12" cy="14" r="8"/>',
+  wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+  phone: '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>',
+  user: '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
+  mail: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>',
+  home: '<path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/>',
+  flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14 0-5.5 3-7.5.5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5Z"/>',
+  trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0Z"/>'
+};
+const ic = (name, cls = "") => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
+const STEP_ICONS = { 1: "calendar", 2: "seat", 3: "card", 4: "ticket" };
+const TIER_ICONS = { cage: "trophy", floor: "flame", lower: "seat", upper: "ticket" };
+
 const FEE_RATE = 0.08;
 const VAT_RATE = 0.15;
 const PROMOS = { FIGHT10: 0.1, OCTAGON20: 0.2 };
@@ -74,15 +104,15 @@ function stepEvents() {
         <div class="bk-date"><strong>${fmtDate(m.date, { day: "2-digit" })}</strong><span>${fmtDate(m.date, { month: "short" })}</span></div>
         <div class="bk-event-body">
           <h3>${event.name}</h3>
-          <p>${m.headline}</p>
-          <p class="bk-muted">${m.venue}, ${m.city} · ${fmtDate(m.date, { weekday: "short", hour: "2-digit", minute: "2-digit" })}</p>
+          <p class="bk-chip">${ic("trophy")}${m.headline}</p>
+          <ul class="bk-meta"><li>${ic("pin")}${m.venue}, ${m.city}</li><li>${ic("clock")}${fmtDate(m.date, { weekday: "short", hour: "2-digit", minute: "2-digit" })}</li></ul>
           <div class="bk-meter" role="img" aria-label="${pct}% sold"><i style="--w:${pct}%"></i></div>
-          <p class="bk-left ${low ? "is-low" : ""}">${left === 0 ? "Sold out" : low ? `Only ${left} seats left` : `${left} seats left`}</p>
+          <p class="bk-left ${low ? "is-low" : ""}">${low ? ic("flame") : ic("seat")}${left === 0 ? "Sold out" : low ? `Only ${left} seats left` : `${left} seats left`}</p>
         </div>
         <div class="bk-event-cta">
           <span class="bk-from">From <b>${money(priceFor(event, "upper"))}</b></span>
-          ${mine ? `<span class="bk-tag">Your booking</span>` : ""}
-          <button class="btn" type="button" data-pick-event="${event.id}" ${left === 0 ? "disabled" : ""}>${left === 0 ? "Sold out" : "Choose seats"}</button>
+          ${mine ? `<span class="bk-tag">${ic("check")}Your booking</span>` : ""}
+          <button class="btn" type="button" data-pick-event="${event.id}" ${left === 0 ? "disabled" : ""}>${left === 0 ? "Sold out" : `${ic("ticket")}Choose seats`}</button>
         </div>
       </article>`;
   }).join("");
@@ -117,7 +147,7 @@ function summaryCard(withTimer) {
   const tier = TIERS.find((x) => x.id === flow.tier);
   return `
     <aside class="bk-summary app-card">
-      <h2>Order summary</h2>
+      <h2>${ic("ticket")}Order summary</h2>
       <p class="bk-sum-event">${event.name}<span>${metaFor(event).venue} · ${fmtDate(metaFor(event).date, { day: "numeric", month: "short", year: "numeric" })}</span></p>
       <dl>
         <div><dt>${tier.name} × ${flow.qty}</dt><dd data-count="${t.sub}">${money(t.sub)}</dd></div>
@@ -126,7 +156,7 @@ function summaryCard(withTimer) {
         <div><dt>VAT 15%</dt><dd>${money(t.vat)}</dd></div>
         <div class="bk-total"><dt>Total</dt><dd data-count="${t.total}">${money(t.total)}</dd></div>
       </dl>
-      ${withTimer ? `<p class="bk-hold" id="holdTimer">Seats held for <b>10:00</b></p>` : ""}
+      ${withTimer ? `<p class="bk-hold" id="holdTimer">${ic("timer")}Seats held for <b>10:00</b></p>` : ""}
     </aside>`;
 }
 
@@ -137,14 +167,14 @@ function stepSeats() {
     return `
       <label class="bk-tier ${flow.tier === tier.id ? "is-on" : ""} ${left === 0 ? "is-out" : ""}">
         <input type="radio" name="tier" value="${tier.id}" ${flow.tier === tier.id ? "checked" : ""} ${left === 0 ? "disabled" : ""}>
-        <span class="bk-swatch bk-swatch--${tier.id}"></span>
+        <span class="bk-swatch bk-swatch--${tier.id}">${ic(TIER_ICONS[tier.id])}</span>
         <span class="bk-tier-text"><b>${tier.name}</b><small>${tier.note}</small></span>
         <span class="bk-tier-price"><b>${money(priceFor(event, tier.id))}</b><small>${left ? `${left} left` : "Sold out"}</small></span>
       </label>`;
   }).join("");
   const maxQty = Math.min(6, tierLeft(event, flow.tier));
   return `
-    <header class="bk-head"><button class="bk-back" type="button" data-step-to="1">Back to events</button><h1>${event.name}</h1><p>Tap a ring on the map or choose a tier from the list.</p></header>
+    <header class="bk-head"><button class="bk-back" type="button" data-step-to="1">${ic("back")}Back to events</button><h1>${event.name}</h1><p>Tap a ring on the map or choose a tier from the list.</p></header>
     <div class="bk-grid">
       <section class="app-card bk-pane">
         <div class="bk-seat-layout">
@@ -154,16 +184,16 @@ function stepSeats() {
         <div class="bk-qty">
           <span>Tickets</span>
           <div class="bk-stepper">
-            <button type="button" data-qty="-1" aria-label="Remove a ticket" ${flow.qty <= 1 ? "disabled" : ""}>−</button>
+            <button type="button" data-qty="-1" aria-label="Remove a ticket" ${flow.qty <= 1 ? "disabled" : ""}>${ic("minus")}</button>
             <output aria-live="polite">${flow.qty}</output>
-            <button type="button" data-qty="1" aria-label="Add a ticket" ${flow.qty >= maxQty ? "disabled" : ""}>+</button>
+            <button type="button" data-qty="1" aria-label="Add a ticket" ${flow.qty >= maxQty ? "disabled" : ""}>${ic("plus")}</button>
           </div>
           <small>Up to 6 per order</small>
         </div>
       </section>
       <div class="bk-side">
         ${summaryCard(false)}
-        <button class="btn bk-wide" type="button" data-step-to="3" ${maxQty ? "" : "disabled"}>Continue to payment</button>
+        <button class="btn bk-wide" type="button" data-step-to="3" ${maxQty ? "" : "disabled"}>${ic("lock")}Continue to payment${ic("arrow")}</button>
       </div>
     </div>`;
 }
@@ -173,30 +203,30 @@ function stepPayment() {
   const t = totals();
   const user = currentUser();
   return `
-    <header class="bk-head"><button class="bk-back" type="button" data-step-to="2">Back to seats</button><h1>Payment</h1><p>This is a demo checkout. Use test card 4242 4242 4242 4242.</p></header>
+    <header class="bk-head"><button class="bk-back" type="button" data-step-to="2">${ic("back")}Back to seats</button><h1>Payment</h1><p>This is a demo checkout. Use test card 4242 4242 4242 4242.</p></header>
     <div class="bk-grid">
       <form class="app-card bk-pane bk-pay" id="payForm" novalidate>
         <div class="bk-wallets">
-          <button type="button" class="bk-wallet" data-wallet="Apple Pay">Apple Pay</button>
-          <button type="button" class="bk-wallet" data-wallet="Google Pay">Google Pay</button>
+          <button type="button" class="bk-wallet" data-wallet="Apple Pay">${ic("phone")}Apple Pay</button>
+          <button type="button" class="bk-wallet" data-wallet="Google Pay">${ic("wallet")}Google Pay</button>
         </div>
         <p class="bk-or"><span>or pay by card</span></p>
-        <label>Name on card<input name="name" autocomplete="cc-name" value="${user.username.replace(/_/g, " ")}" required></label>
+        <label><span class="bk-lbl">${ic("user")}Name on card</span><input name="name" autocomplete="cc-name" value="${user.username.replace(/_/g, " ")}" required></label>
         <label>Card number
-          <span class="bk-card-field"><input name="card" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" maxlength="19" required><em id="cardBrand"></em></span>
+          <span class="bk-card-field">${ic("card","bk-field-ic")}<input name="card" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" maxlength="19" required><em id="cardBrand"></em></span>
         </label>
         <div class="bk-row">
           <label>Expiry<input name="exp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" maxlength="5" required></label>
           <label>CVC<input name="cvc" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4" required></label>
         </div>
-        <label>Email for tickets<input name="email" type="email" value="${user.email}" required></label>
+        <label><span class="bk-lbl">${ic("mail")}Email for tickets</span><input name="email" type="email" value="${user.email}" required></label>
         <div class="bk-promo">
           <input name="promo" placeholder="Promo code" value="${flow.promo || ""}" aria-label="Promo code">
-          <button class="btn secondary" type="button" id="applyPromo">Apply</button>
+          <button class="btn secondary" type="button" id="applyPromo">${ic("tag")}Apply</button>
         </div>
         <p class="bk-hint">Try FIGHT10 or OCTAGON20.</p>
-        <button class="btn bk-wide bk-paybtn" type="submit" id="payBtn"><span>Pay ${money(t.total)}</span></button>
-        <p class="bk-secure">Secured checkout. Full refund up to 7 days before the event.</p>
+        <button class="btn bk-wide bk-paybtn" type="submit" id="payBtn">${ic("lock")}<span>Pay ${money(t.total)}</span></button>
+        <p class="bk-secure">${ic("shield")}Secured checkout. Full refund up to 7 days before the event.</p>
       </form>
       <div class="bk-side">${summaryCard(true)}</div>
     </div>`;
@@ -234,23 +264,23 @@ function stepTicket() {
     <div class="bk-done">
       <div class="bk-check" aria-hidden="true"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 15-16"/></svg></div>
       <h1>You're in. See you cageside.</h1>
-      <p>Tickets sent to ${b.email}</p>
+      <p class="bk-sent">${ic("mail")}Tickets sent to ${b.email}</p>
       <article class="bk-ticket">
         <div class="bk-ticket-main">
-          <span class="bk-ref">${b.ref}</span>
+          <span class="bk-ref">${ic("ticket")}${b.ref}</span>
           <h2>${b.eventName}</h2>
           <dl>
-            <div><dt>Date</dt><dd>${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</dd></div>
-            <div><dt>Venue</dt><dd>${m.venue}, ${m.city}</dd></div>
-            <div><dt>Seats</dt><dd>${b.tierName} × ${b.qty}</dd></div>
-            <div><dt>Paid</dt><dd>${money(b.total)}</dd></div>
+            <div><dt>${ic("calendar")}Date</dt><dd>${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</dd></div>
+            <div><dt>${ic("pin")}Venue</dt><dd>${m.venue}, ${m.city}</dd></div>
+            <div><dt>${ic("seat")}Seats</dt><dd>${b.tierName} × ${b.qty}</dd></div>
+            <div><dt>${ic("card")}Paid</dt><dd>${money(b.total)}</dd></div>
           </dl>
         </div>
         <div class="bk-ticket-stub">${qrSvg(b.ref)}<small>Scan at the gate</small></div>
       </article>
       <div class="action-row">
-        <button class="btn" type="button" id="addCalendar">Add to calendar</button>
-        <button class="btn secondary nav-trigger" data-screen="memberDashboard" type="button">Go to dashboard</button>
+        <button class="btn" type="button" id="addCalendar">${ic("calendar")}Add to calendar</button>
+        <button class="btn secondary nav-trigger" data-screen="memberDashboard" type="button">${ic("home")}Go to dashboard</button>
       </div>
     </div>
     <div class="bk-confetti" aria-hidden="true">${reduceMotion ? "" : Array.from({ length: 28 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${(i % 7) * 0.08}s;--r:${(i * 53) % 360}deg"></i>`).join("")}</div>`;
@@ -270,6 +300,7 @@ function renderBooking() {
     const s = Number(li.dataset.step);
     li.classList.toggle("is-done", s < flow.step);
     li.classList.toggle("is-current", s === flow.step);
+    li.querySelector("span").innerHTML = s < flow.step ? ic("check") : ic(STEP_ICONS[s]);
     li.toggleAttribute("aria-current", s === flow.step);
   });
   document.querySelector(".bk-steps").style.setProperty("--progress", `${((flow.step - 1) / 3) * 100}%`);
