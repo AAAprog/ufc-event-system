@@ -19,7 +19,7 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--text);
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--body);
   background:
     radial-gradient(circle at 82% 0%, rgba(255, 42, 42, 0.18), transparent 32%),
     radial-gradient(circle at 0% 100%, rgba(255, 204, 0, 0.10), transparent 34%),
@@ -64,7 +64,7 @@ select {
   border-left: 4px solid var(--red);
   background: transparent;
   color: #fff;
-  font-family: Oswald, sans-serif;
+  font-family: var(--display);
   font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: 0.15em;
@@ -124,7 +124,7 @@ h2,
 h3 {
   margin: 0;
   color: #fff;
-  font-family: Oswald, sans-serif;
+  font-family: var(--display);
   letter-spacing: 0.04em;
   line-height: 0.98;
   text-transform: uppercase;
@@ -195,7 +195,7 @@ p {
 
 #screen-home .hero-summary strong {
   color: var(--gold);
-  font-family: Oswald, sans-serif;
+  font-family: var(--display);
   font-size: 1.55rem;
   letter-spacing: 0.04em;
   line-height: 1;
@@ -305,7 +305,7 @@ body.auth-screen #registerForm .auth-switch {
   border: 0;
   background: transparent;
   color: #fff;
-  font-family: Oswald, sans-serif;
+  font-family: var(--display);
   font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -335,7 +335,7 @@ body.auth-screen #registerForm .auth-switch {
 .auth-header h1 {
   max-width: none;
   color: #fff;
-  font-family: Oswald, sans-serif;
+  font-family: var(--display);
   font-size: clamp(1.9rem, 5vw, 2.45rem);
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -485,7 +485,7 @@ body.auth-screen .btn {
   border-radius: 999px;
   background: linear-gradient(135deg, var(--red), #a61212);
   color: #fff;
-  font-family: Oswald, sans-serif;
+  font-family: var(--display);
   font-weight: 700;
   letter-spacing: 0.09em;
   text-decoration: none;
@@ -632,7 +632,7 @@ select {
 }
 
 .metric-grid strong {
-  font-family: Oswald, sans-serif;
+  font-family: var(--display);
   font-size: clamp(1.45rem, 2.5vw, 2rem);
   line-height: 1;
   word-break: break-word;
@@ -675,7 +675,7 @@ select {
 
 .timeline span {
   color: var(--gold);
-  font-family: Oswald, sans-serif;
+  font-family: var(--display);
   font-size: 1.15rem;
 }
 
@@ -912,7 +912,7 @@ body.admin-mode .brand { border-left-color: var(--admin); }
 .admin-signout {
   min-height: 38px; margin-left: 6px; padding: 8px 14px;
   border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 999px;
-  background: transparent; color: #fff; font: 700 0.82rem Inter, sans-serif; cursor: pointer;
+  background: transparent; color: #fff; font: 700 0.82rem var(--body); cursor: pointer;
 }
 .admin-signout:hover { border-color: var(--red); color: #ff8a8f; }
 .demo-hint { margin: 0; padding: 10px 12px; border-radius: 10px; background: rgba(79, 140, 255, 0.1); color: #b9cfff; font-size: 0.85rem; }

@@ -241,7 +241,7 @@ function renderTables() {
       <td><input class="table-input" value="${event.name}" data-event-name="${event.id}"></td>
       <td><input class="table-input number" type="number" min="${event.registered}" value="${event.quota}" data-event-quota="${event.id}"></td>
       <td>${event.registered}</td>
-      <td><span class="status">${statusFor(event)}</span></td>
+      <td><span class="status status--${statusFor(event).toLowerCase().replace(" ", "-")}">${statusFor(event)}</span></td>
       <td><button class="small-danger" data-delete-event="${event.id}" type="button">Delete</button></td>
     </tr>
   `).join("");
