@@ -354,3 +354,79 @@ body.admin-mode .btn:not(.secondary):hover:not(:disabled) { background: #6a9fff;
 .status { border-radius: 6px; padding: 5px 10px; font: 700 0.8rem var(--body); letter-spacing: 0; text-transform: none; background: rgba(76, 217, 130, 0.14); color: #7ee6a3; }
 .status--low-seats { background: rgba(255, 180, 61, 0.15); color: var(--gold); }
 .status--full { background: rgba(255, 59, 48, 0.15); color: #ff8a83; }
+
+/* =========== v3.1: contrast + per-screen upgrades =========== */
+/* Accessible button fills: white text >= 4.5:1 (red 5.0:1, blue 5.3:1). Bright red stays for accents. */
+:root { --btn: #d42b20; --btn-hover: #c02318; --btn-admin: #2a66d6; --btn-admin-hover: #2459bd; }
+.btn, .text-link, body.auth-screen .btn { background: var(--btn); }
+.btn:hover:not(:disabled) { background: var(--btn-hover); }
+.btn.secondary:hover:not(:disabled) { background: var(--surface-3); }
+.btn.secondary, .text-link, .small-danger { background: var(--surface-2); }
+body.admin-mode .btn:not(.secondary) { background: var(--btn-admin); }
+body.admin-mode .btn:not(.secondary):hover:not(:disabled) { background: var(--btn-admin-hover); }
+.bk-paybtn.is-success { background: #17803d !important; }
+
+/* Tale of the tape */
+.tape { position: relative; display: grid; gap: 10px; margin-top: 14px; padding-top: 16px; border-top: 1px solid var(--line); }
+.tape-title { margin: 0 0 2px; text-align: center; color: var(--muted); font: 700 0.8rem var(--body); }
+.tape-row { display: grid; grid-template-columns: 64px 1fr 64px; grid-template-areas: "r bar b" ". lbl ."; align-items: center; column-gap: 10px; }
+.tape-row > b { font: 700 1.05rem var(--display); color: var(--muted); font-variant-numeric: tabular-nums; }
+.tape-row > b:first-child { grid-area: r; }
+.tape-row > b:last-of-type { grid-area: b; text-align: right; }
+.tape-row > b.is-lead { color: var(--text); }
+.tape-row > span { grid-area: lbl; text-align: center; color: var(--muted); font-size: 0.75rem; margin-top: 2px; }
+.tape-bar { grid-area: bar; display: flex; gap: 3px; height: 6px; }
+.tape-bar i { display: block; height: 100%; width: var(--w); border-radius: 4px; animation: bk-grow 0.9s var(--ease-out); }
+.tape-r { background: var(--red); }
+.tape-b { background: var(--admin); }
+
+/* Live card preview */
+.cc { perspective: 1200px; width: min(360px, 100%); justify-self: center; margin-bottom: 6px; }
+.cc-inner { position: relative; aspect-ratio: 1.586; transition: transform 0.6s var(--ease-out); transform-style: preserve-3d; }
+.cc.is-flipped .cc-inner { transform: rotateY(180deg); }
+.cc-face {
+  position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between;
+  padding: 20px 22px; border-radius: 18px; backface-visibility: hidden; color: #fff;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.22), transparent 40%),
+    linear-gradient(135deg, #2b2f3b, #12141a);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 24px 40px -20px rgba(0, 0, 0, 0.9);
+}
+.cc[data-brand="visa"] .cc-face { background: radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.25), transparent 40%), linear-gradient(135deg, #1f3c88, #0e1838); }
+.cc[data-brand="mastercard"] .cc-face { background: radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.22), transparent 40%), linear-gradient(135deg, #8a2b12, #2a0d07); }
+.cc[data-brand="amex"] .cc-face { background: radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.25), transparent 40%), linear-gradient(135deg, #0f6b6b, #062a2a); }
+.cc[data-brand="mada"] .cc-face { background: radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.22), transparent 40%), linear-gradient(135deg, #1b6a3a, #08251a); }
+.cc-back { transform: rotateY(180deg); justify-content: flex-start; gap: 14px; padding: 18px 0; }
+.cc-top, .cc-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+.cc-chip { width: 42px; height: 32px; border-radius: 7px; background: linear-gradient(135deg, #e9c46a, #a8832c); }
+.cc-brand { font: italic 800 1.3rem var(--display); letter-spacing: 0.04em; }
+.cc-num { margin: 0; font: 600 clamp(1.15rem, 4.5vw, 1.45rem) var(--body); letter-spacing: 0.12em; font-variant-numeric: tabular-nums; }
+.cc-bottom span { display: grid; gap: 2px; }
+.cc-bottom small, .cc-back small { color: rgba(255, 255, 255, 0.65); font-size: 0.7rem; }
+.cc-bottom b { font: 600 0.95rem var(--body); text-transform: uppercase; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-strip { height: 42px; background: #050505; }
+.cc-sig { display: flex; align-items: center; gap: 10px; margin: 0 22px; }
+.cc-sig span { flex: 1; height: 34px; border-radius: 4px; background: repeating-linear-gradient(90deg, #ddd 0 6px, #c9c9c9 6px 12px); }
+.cc-sig b { padding: 6px 10px; border-radius: 4px; background: #fff; color: #111; font-weight: 700; letter-spacing: 0.15em; }
+.cc-back small { margin: 0 22px; }
+
+/* Split sign-in / register */
+@media (min-width: 900px) {
+  body.auth-split .app-shell { width: min(1040px, calc(100% - 48px)); }
+  body.auth-split .auth-layout { grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 48px; align-items: center; justify-content: stretch; }
+  body.auth-split #registerForm { width: 100%; }
+}
+.auth-promo { display: none; }
+@media (min-width: 900px) {
+  .auth-promo { display: grid; gap: 10px; align-content: center; }
+  .auth-promo h2 { margin: 0; font: 800 clamp(3rem, 5vw, 4.4rem)/0.88 var(--display); text-transform: uppercase; }
+  .auth-promo-match { margin: 0; font: 700 1.35rem var(--display); }
+  .auth-promo-match span { color: var(--gold); }
+  .auth-promo .home-sub { margin: 0 0 8px; }
+  .auth-perks { display: grid; gap: 10px; margin: 18px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); list-style: none; }
+  .auth-perks li { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+  .auth-perks .ic { color: var(--gold); }
+}
+.bk-pay .bk-card-field input { padding-left: 44px; }
+.cc-num { color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
