@@ -141,9 +141,11 @@ function deleteEvent(eventId) {
 function cancelBooking() {
   const user = currentUser();
   const ev = eventById(user.registeredEvent);
-  if (ev) ev.registered = Math.max(ev.registered - 1, 0);
+  if (ev) ev.registered = Math.max(ev.registered - (user.seats?.length || 1), 0);
   user.registeredEvent = null;
   user.bookedAt = null;
+  user.seats = [];
+  user.total = 0;
   saveState();
   render();
   showToast("Booking cancelled. Your seat is released.");

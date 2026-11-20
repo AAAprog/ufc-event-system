@@ -107,6 +107,8 @@ function ticketCard(user, ev) {
           <div><dt>Date</dt><dd>${when}</dd></div>
           <div><dt>Venue</dt><dd>${info.venue}${info.city ? `, ${info.city}` : ""}</dd></div>
           <div><dt>Holder</dt><dd>${user.username}</dd></div>
+          ${user.seats && user.seats.length ? `<div><dt>Seats</dt><dd>${user.tierName} · ${user.seats.join(", ")}</dd></div>` : ""}
+          ${user.total ? `<div><dt>Paid</dt><dd>$${user.total.toFixed(2)}</dd></div>` : ""}
         </dl>
       </div>
       <div class="ticket-stub">${qr(ref)}<span>Admit one</span></div>
@@ -127,27 +129,6 @@ renderBooking = function renderBookingPlus() {
     box.insertAdjacentHTML("beforeend", `<div class="action-row ticket-cta"><button class="btn nav-trigger" data-screen="memberDashboard" type="button">Go to my booking${icon("arrow")}</button></div>`);
   }
 };
-
-/* Booking button: loading → success before the real booking runs */
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-book]");
-  if (!btn || btn.dataset.go) return;
-  const user = currentUser();
-  if (user.registeredEvent === Number(btn.dataset.book)) return; // let app.js show its message
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  document.querySelectorAll("[data-book]").forEach((b) => { b.disabled = true; });
-  btn.classList.add("is-loading");
-  btn.innerHTML = `<span class="spinner" aria-hidden="true"></span>Reserving…`;
-  setTimeout(() => {
-    btn.dataset.go = "1";
-    btn.disabled = false;
-    btn.click();
-    document.getElementById("bookingConfirmation").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
-    const t = document.querySelector("#bookingConfirmation .ticket");
-    if (t && !reduceMotion) t.classList.add("is-new");
-  }, reduceMotion ? 0 : 750);
-}, true);
 
 /* ---------- My account: My booking ---------- */
 const renderMemberBase = renderMember;

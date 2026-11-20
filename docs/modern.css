@@ -499,3 +499,136 @@ tbody tr:hover td { background: rgba(255, 255, 255, 0.07); }
 }
 .admin-grid { margin-top: 18px; }
 #adminCapacity { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+
+/* =========== Checkout: steps, seats, payment =========== */
+.steps { display: flex; gap: 8px; margin: 0 0 22px; padding: 0; list-style: none; flex-wrap: wrap; }
+.steps li { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.04); color: var(--muted); font-size: 0.88rem; font-weight: 600; }
+.steps li span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); font-size: 0.8rem; }
+.steps li.is-current { background: rgba(255, 42, 42, 0.14); color: #fff; }
+.steps li.is-current span { background: var(--red); color: #fff; }
+.steps li.is-done { color: #fff; }
+.steps li.is-done span { background: rgba(60, 184, 120, 0.25); color: #9ff0c0; }
+.steps .ic { width: 14px; height: 14px; }
+.back-link { justify-self: start; margin-bottom: 6px; padding: 0; border: 0; background: none; color: var(--gold); font: 600 0.9rem Inter, sans-serif; cursor: pointer; }
+
+.checkout-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+.checkout-main { display: grid; gap: 18px; }
+.pick-card, .pay-card { padding: 22px; border-radius: 20px; }
+.pick-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+.pick-head h2 { margin: 0; font: 650 1.1rem Inter, sans-serif; text-transform: none; letter-spacing: 0; }
+.pick-head span { color: var(--muted); font-size: 0.85rem; }
+
+.tier-pick { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 22px; align-items: center; }
+.arena { width: 100%; height: auto; }
+.arena-ring { fill: rgba(255, 255, 255, 0.06); stroke: rgba(255, 255, 255, 0.14); stroke-width: 1.5; cursor: pointer; transition: fill 0.25s var(--ease); }
+.arena-ring:hover { fill: rgba(255, 255, 255, 0.12); }
+.arena-ring.is-on { fill: rgba(255, 42, 42, 0.35); stroke: var(--red); }
+.arena-ring:focus-visible { outline: none; stroke: var(--gold); stroke-width: 3; }
+.arena-cage { fill: #0d0405; stroke: rgba(255, 255, 255, 0.5); stroke-width: 1.5; pointer-events: none; }
+.arena text { fill: var(--muted); font: 600 11px Inter, sans-serif; pointer-events: none; }
+.tiers { display: grid; gap: 10px; }
+.tier { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 16px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; background: rgba(255, 255, 255, 0.03); color: #fff; font: inherit; text-align: left; cursor: pointer; transition: all 0.25s var(--ease); }
+.tier:hover { border-color: rgba(255, 255, 255, 0.18); }
+.tier.is-on { border-color: var(--red); background: rgba(255, 42, 42, 0.08); }
+.tier span { display: grid; gap: 2px; }
+.tier b { font-weight: 650; }
+.tier small { color: var(--muted); }
+.tier strong { font-weight: 700; }
+.tier-dot { width: 12px; height: 12px; border-radius: 50%; }
+.tier-cage { background: var(--red); }
+.tier-floor { background: #ff8a5c; }
+.tier-stands { background: var(--gold); }
+
+.stage-line { margin-bottom: 14px; padding: 6px; border-radius: 10px 10px 40px 40px; background: linear-gradient(rgba(255, 255, 255, 0.08), transparent); color: var(--muted); font-size: 0.78rem; text-align: center; }
+.seats { display: grid; gap: 8px; justify-content: center; overflow-x: auto; padding-bottom: 4px; }
+.seat-row { display: flex; align-items: center; gap: 6px; }
+.row-label { width: 16px; color: var(--muted); font-size: 0.75rem; font-weight: 700; text-align: center; }
+.aisle { width: 14px; }
+.seat { width: 26px; height: 26px; padding: 0; border: 1.5px solid rgba(255, 255, 255, 0.35); border-radius: 8px 8px 5px 5px; background: transparent; cursor: pointer; transition: transform 0.15s var(--ease), background 0.15s, border-color 0.15s; }
+.seat:hover:not(:disabled) { border-color: #fff; transform: translateY(-2px); }
+.seat.is-on { background: var(--red); border-color: var(--red); animation: seat-pop 0.25s var(--ease); }
+.seat:disabled, .seat[data-taken] { border-color: transparent; background: rgba(255, 255, 255, 0.08); cursor: not-allowed; }
+@keyframes seat-pop { 50% { transform: scale(1.18); } }
+.legend { display: flex; justify-content: center; gap: 18px; margin: 16px 0 0; padding: 0; list-style: none; color: var(--muted); font-size: 0.8rem; }
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.legend .seat { width: 16px; height: 16px; cursor: default; animation: none; }
+
+.order { position: sticky; top: 90px; display: grid; gap: 14px; padding: 22px; border-radius: 20px; }
+.order h2 { margin: 0; font: 650 1.1rem Inter, sans-serif; text-transform: none; letter-spacing: 0; }
+.order-event { display: grid; gap: 2px; margin: 0; }
+.order-event span { color: var(--muted); font-size: 0.85rem; }
+.order dl { display: grid; gap: 8px; margin: 0; }
+.order dl div { display: flex; justify-content: space-between; color: var(--muted); }
+.order dd { margin: 0; color: #fff; font-variant-numeric: tabular-nums; }
+.order-total { padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.order-total dt { color: #fff; font-weight: 700; }
+.order-total dd { font-size: 1.4rem; font-weight: 700; }
+.order-seats { display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); font-weight: 600; }
+.hold { margin: 0; padding: 10px 12px; border-radius: 12px; background: rgba(255, 204, 0, 0.08); color: #ffd166; font-size: 0.88rem; }
+.hold.is-urgent { background: rgba(255, 42, 42, 0.14); color: #ff9a9a; }
+.order-cta { width: 100%; justify-content: center; }
+
+.pay-card { display: grid; gap: 14px; }
+.wallets { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.wallet { min-height: 48px; border: 0; border-radius: 12px; background: #fff; color: #111; font: 700 1rem Inter, sans-serif; cursor: pointer; transition: transform 0.15s var(--ease); }
+.wallet:active { transform: scale(0.98); }
+.or { display: flex; align-items: center; gap: 12px; margin: 0; color: var(--muted); font-size: 0.85rem; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1); }
+.pay-card label { gap: 6px; font-size: 0.85rem; letter-spacing: 0; text-transform: none; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.card-field { position: relative; display: block; }
+.card-field em { position: absolute; inset-inline-end: 12px; top: 50%; transform: translateY(-50%); color: var(--gold); font-style: normal; font-weight: 700; font-size: 0.8rem; }
+.has-error input { border-color: #ff6b6b; }
+.field-error { color: #ff9a9a; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.pay-btn { width: 100%; justify-content: center; min-height: 52px; }
+.pay-btn.is-success { background: #1f9d55; }
+.secure { margin: 0; color: var(--muted); font-size: 0.82rem; text-align: center; }
+
+/* =========== Home extras =========== */
+.home-extra { margin-top: 20px; padding: 24px; border-radius: 22px; }
+.home-extra .panel-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+.home-extra h2 { margin: 0; }
+.muted-note { color: var(--muted); font-size: 0.88rem; }
+.city-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.city-tile { display: grid; gap: 4px; padding: 18px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; background: linear-gradient(160deg, rgba(255, 42, 42, 0.12), rgba(255, 255, 255, 0.02)); color: #fff; font: inherit; text-align: left; cursor: pointer; transition: transform 0.3s var(--ease), border-color 0.3s var(--ease); }
+.city-tile:hover { transform: translateY(-3px); border-color: rgba(255, 42, 42, 0.4); }
+.city-tile b { font-size: 1.1rem; font-weight: 650; }
+.city-tile span { color: var(--muted); font-size: 0.85rem; }
+.how-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 16px 0 0; padding: 0; list-style: none; }
+.how-list li { display: grid; gap: 6px; padding: 18px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); }
+.how-list span { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(255, 42, 42, 0.18); color: #ffb3b3; font-weight: 700; }
+.how-list p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+/* =========== Sign in / register =========== */
+.pw-field { position: relative; display: block; }
+.pw-field input { width: 100%; padding-inline-end: 64px; }
+.pw-toggle { position: absolute; inset-inline-end: 8px; top: 50%; transform: translateY(-50%); padding: 6px 10px; border: 0; border-radius: 8px; background: rgba(255, 255, 255, 0.06); color: var(--muted); font: 600 0.8rem Inter, sans-serif; cursor: pointer; }
+.pw-toggle:hover { color: #fff; }
+.auth-promo { display: none; }
+@media (min-width: 900px) {
+  body.auth-split .app-shell { width: min(1040px, calc(100% - 48px)); }
+  body.auth-split .auth-layout { grid-template-columns: minmax(0, 460px) minmax(0, 1fr); gap: 48px; align-items: center; justify-content: stretch; }
+  body.auth-split #registerForm { width: 100%; }
+  .auth-promo { display: grid; gap: 12px; }
+  .auth-promo h2 { margin: 0; font-size: clamp(2.4rem, 4vw, 3.4rem); line-height: 0.95; }
+  .auth-promo-fight { margin: 0; font-weight: 650; font-size: 1.1rem; }
+  .auth-promo-meta { margin: 0 0 6px; color: var(--muted); }
+  .perks { display: grid; gap: 10px; margin: 14px 0 0; padding: 16px 0 0; border-top: 1px solid rgba(255, 255, 255, 0.08); list-style: none; }
+  .perks li { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+  .perks .ic { color: var(--gold); }
+}
+
+@media (max-width: 900px) {
+  .checkout-grid { grid-template-columns: 1fr; }
+  .order { position: static; }
+  .how-list { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .tier-pick { grid-template-columns: 1fr; }
+  .arena { max-width: 220px; justify-self: center; }
+  .seat { width: 20px; height: 20px; }
+  .seat-row { gap: 4px; }
+  .aisle { width: 6px; }
+  .pick-card, .pay-card, .home-extra { padding: 16px; }
+}
+.pay-btn, .order-cta, .ticket-cta .btn, .my-booking .btn { font-family: Inter, system-ui, sans-serif; text-transform: none; letter-spacing: 0; font-weight: 650; }
