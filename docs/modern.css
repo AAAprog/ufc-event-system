@@ -296,3 +296,125 @@ tbody tr:hover td { background: rgba(255, 255, 255, 0.07); }
   .cd > div { min-width: 0; flex: 1; }
 }
 .link-btn { white-space: nowrap; }
+
+/* =========== Cards v2: natural, smooth, animated =========== */
+/* Calmer type inside cards: normal case, no wide tracking */
+.event-card h3, .booking-card h3, .ticket h3, .capacity-top strong, .fill-ring strong {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 1.08rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+.metric-grid span, .ticket dt, .ticket-stub span, .cd span, .hero-next-label {
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 600;
+}
+.metric-grid span { font-size: 0.85rem; }
+.metric-grid strong { font-size: 1.9rem; }
+
+/* Card shell: soft surface, gentle shadow, smooth lift */
+.event-card, .booking-card {
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease), background 0.35s var(--ease), border-color 0.35s var(--ease);
+}
+.event-card:hover, .booking-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.7);
+}
+.booking-card.is-booked { border-color: rgba(255, 204, 0, 0.3); background: rgba(255, 204, 0, 0.04); }
+
+/* Date: a quiet calendar chip instead of a glowing block */
+.date-tile {
+  width: 52px;
+  height: 56px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+  font-family: Inter, system-ui, sans-serif;
+}
+.date-tile b { font-size: 1.25rem; font-weight: 700; }
+.date-tile span { margin-top: 2px; color: #ff6b6b; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; }
+
+/* Details: one soft line, small icons */
+.event-body { gap: 6px; }
+.event-facts { gap: 4px 14px; font-size: 0.86rem; }
+.event-facts .ic { width: 14px; height: 14px; color: var(--muted); opacity: 0.8; }
+.seat-meter { height: 4px; max-width: 260px; background: rgba(255, 255, 255, 0.07); }
+.seat-meter i { background: rgba(255, 255, 255, 0.55); animation: meter-grow 1.1s var(--ease); }
+.seat-text { font-size: 0.82rem; }
+.seat-text .ic { display: none; }
+.seat-text.is-low { color: #ffd166; font-weight: 600; }
+
+/* Status: small soft pill, no glow */
+.chip {
+  padding: 4px 10px;
+  border: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.chip::before { width: 6px; height: 6px; box-shadow: none; }
+.chip.low::before { animation: none; }
+
+/* Booking button inside cards: calmer size */
+.booking-card > .btn { min-height: 42px; padding: 0 18px; font-size: 0.85rem; }
+
+/* Entrance: cards ease in one after another */
+.screen.is-active .event-card, .screen.is-active .booking-card {
+  animation: card-in 0.5s var(--ease) both;
+}
+.screen.is-active :is(.event-card, .booking-card):nth-child(2) { animation-delay: 0.06s; }
+.screen.is-active :is(.event-card, .booking-card):nth-child(3) { animation-delay: 0.12s; }
+.screen.is-active :is(.event-card, .booking-card):nth-child(4) { animation-delay: 0.18s; }
+@keyframes card-in { from { opacity: 0; transform: translateY(10px); } }
+
+/* Stat boxes: softer */
+.metric-grid > div { border-radius: 16px; transition: transform 0.35s var(--ease), border-color 0.35s var(--ease); }
+.metric-grid > div::before { height: 0; }
+.metric-grid span .ic { color: var(--muted); }
+
+/* Ticket: softer edges and colours */
+.ticket { border-color: rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.04); border-radius: 18px; }
+.ticket h3 { font-size: 1.25rem; margin-top: 4px; }
+.ticket-ref { font-family: Inter, system-ui, sans-serif; font-size: 0.8rem; letter-spacing: 0.04em; }
+.ticket dt { font-size: 0.75rem; }
+.ticket-stub { border-inline-start-color: rgba(255, 255, 255, 0.12); background: rgba(0, 0, 0, 0.15); }
+.qr { width: 96px; height: 96px; }
+
+/* Capacity rows + ring: quieter */
+.capacity-row, .fill-ring { border-color: rgba(255, 255, 255, 0.06); background: rgba(255, 255, 255, 0.03); }
+.capacity-bar i { background: rgba(255, 255, 255, 0.55); }
+.ring { width: 72px; height: 72px; }
+.ring b { font-family: Inter, system-ui, sans-serif; font-size: 1rem; }
+
+/* Countdown: lighter boxes */
+.cd > div { min-width: 56px; padding: 8px 6px 6px; border-color: rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.04); }
+.cd > div::after { display: none; }
+.cd b { font-family: Inter, system-ui, sans-serif; font-size: 1.4rem; font-weight: 700; }
+.cd span { font-size: 0.7rem; }
+.cd-sm b { font-size: 1.05rem; }
+.hero-next-label { color: var(--muted); font-size: 0.85rem; }
+.hero-next-fight { font-size: 1.25rem; }
+
+@media (max-width: 620px) {
+  .event-card, .booking-card { grid-template-columns: 46px minmax(0, 1fr); padding: 14px; }
+  .date-tile { width: 46px; height: 50px; }
+  .date-tile b { font-size: 1.1rem; }
+}
+.event-card strong.chip, .chip { text-transform: none !important; letter-spacing: 0 !important; }
+.booking-card > .btn { font-family: Inter, system-ui, sans-serif; text-transform: none; letter-spacing: 0; font-weight: 650; }
+.hero-next-fight { font-family: Inter, system-ui, sans-serif; text-transform: none; letter-spacing: -0.01em; font-weight: 650; }
+#screen-home .hero-summary strong { font-size: 1.6rem; }
+#screen-home .hero-summary span { text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 0.85rem; color: var(--muted); }
