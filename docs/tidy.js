@@ -34,15 +34,21 @@ navigate = function navigateTidy(screen) {
   syncHeader();
 };
 
-document.getElementById("loginForm").addEventListener("submit", () => {
-  const name = new FormData(document.getElementById("loginForm")).get("username");
-  if (state.users.some((u) => u.id === state.currentUserId && u.username === String(name).trim())) {
-    state.memberSignedIn = true; saveState(); syncHeader();
+// Runs before app.js's own handlers (capture phase), so the sign-in is known before navigation.
+document.addEventListener("submit", (e) => {
+  if (e.target.id === "loginForm") {
+    const f = new FormData(e.target);
+    const user = state.users.find((u) => u.username === String(f.get("username")).trim());
+    state.memberSignedIn = Boolean(user && user.password === String(f.get("password") || ""));
   }
-});
+  if (e.target.id === "registerForm") state.memberSignedIn = true;
+}, true);
 document.getElementById("registerForm").addEventListener("submit", () => {
-  setTimeout(() => { if (document.getElementById("screen-memberDashboard").classList.contains("is-active")) { state.memberSignedIn = true; saveState(); syncHeader(); } }, 0);
+  // If registration was rejected the member stays on the form, so undo the flag.
+  if (!document.getElementById("screen-memberDashboard").classList.contains("is-active")) state.memberSignedIn = false;
+  saveState(); syncHeader();
 });
+document.getElementById("loginForm").addEventListener("submit", () => { saveState(); syncHeader(); });
 
 /* Sign out from My account */
 const renderMemberTidy = renderMember;
@@ -80,3 +86,37 @@ renderHome = function renderHomeTidied() {
 
 render();
 syncHeader();
+
+/* ---------- Phone navigation: 4 compact tabs, header account button ---------- */
+(function phoneNav() {
+  const bar = document.querySelector(".tabbar");
+  const tabs = [["home", "home", "Home"], ["booking", "calendar", "Events"], ["memberDashboard", "ticket", "My tickets"], ["profile", "user", "Account"]];
+  bar.innerHTML = `<span class="tabbar-pill" aria-hidden="true"></span>` + tabs.map(([s, i, l]) => `<button class="nav-trigger" data-screen="${s}" type="button">${icon(i)}<span>${l}</span></button>`).join("");
+})();
+
+moveTabPill = function markCurrentTab() {
+  const screen = document.querySelector(".screen.is-active")?.id.replace("screen-", "");
+  const map = { home: "home", booking: "booking", seats: "booking", payment: "booking", memberDashboard: "memberDashboard", profile: "profile" };
+  document.querySelectorAll(".tabbar button").forEach((b) => {
+    const on = b.dataset.screen === map[screen];
+    b.classList.toggle("is-current", on);
+    b.toggleAttribute("aria-current", on);
+  });
+};
+
+const syncHeaderBase = syncHeader;
+syncHeader = function syncHeaderAvatar() {
+  syncHeaderBase();
+  const b = document.getElementById("headerAccount");
+  b.classList.toggle("is-avatar", signedIn());
+  if (signedIn()) {
+    const name = currentUser().username;
+    b.textContent = name.replace(/[^a-z0-9]/gi, "").slice(0, 2).toUpperCase();
+    b.setAttribute("aria-label", `My account (${name})`);
+  } else {
+    b.removeAttribute("aria-label");
+  }
+};
+render();
+syncHeader();
+moveTabPill();
