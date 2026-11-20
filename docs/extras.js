@@ -7,7 +7,13 @@
 const MAIN_EVENTS = {
   1: "Karim Haddad vs Marco Silva",
   2: "Ivan Petrov vs Dele Okafor",
-  3: "Omar Nasser vs Jake Turner"
+  3: "Omar Nasser vs Jake Turner",
+  4: "Faisal Otaibi vs Tom Becker",
+  5: "Yousef Al-Amri vs Liam Carter",
+  6: "Hamza Idrissi vs Luca Romano",
+  7: "Rami Saleh vs Kenji Mori",
+  8: "Ali Rahimi vs Pedro Alves",
+  9: "Tariq Bakr vs Diego Ruiz"
 };
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -115,7 +121,11 @@ renderBooking = function renderBookingPlus() {
   const box = document.getElementById("bookingConfirmation");
   box.querySelector(".ticket")?.remove();
   box.classList.toggle("has-ticket", Boolean(ev));
-  if (ev) box.insertAdjacentHTML("beforeend", ticketCard(user, ev));
+  box.querySelector(".ticket-cta")?.remove();
+  if (ev) {
+    box.insertAdjacentHTML("beforeend", ticketCard(user, ev));
+    box.insertAdjacentHTML("beforeend", `<div class="action-row ticket-cta"><button class="btn nav-trigger" data-screen="memberDashboard" type="button">Go to my booking${icon("arrow")}</button></div>`);
+  }
 };
 
 /* Booking button: loading → success before the real booking runs */
@@ -139,14 +149,35 @@ document.addEventListener("click", (e) => {
   }, reduceMotion ? 0 : 750);
 }, true);
 
-/* ---------- My account ---------- */
+/* ---------- My account: My booking ---------- */
 const renderMemberBase = renderMember;
 renderMember = function renderMemberPlus() {
   renderMemberBase();
-  const card = document.getElementById("metricBooking").parentElement;
-  card.querySelector(".cd")?.remove();
-  const ev = eventById(currentUser().registeredEvent);
-  if (ev && infoFor(ev).date) card.insertAdjacentHTML("beforeend", countdown(infoFor(ev).date, "cd-sm"));
+  const user = currentUser();
+  const ev = eventById(user.registeredEvent);
+  const root = document.getElementById("screen-memberDashboard");
+  root.querySelector(".my-booking")?.remove();
+  const html = ev ? `
+    <section class="my-booking app-card">
+      <div class="my-booking-head">
+        <div><h2>My booking</h2><p>${user.bookedAt ? `Booked ${new Date(user.bookedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · ` : ""}Show this ticket at the gate.</p></div>
+        ${infoFor(ev).date ? `<div class="my-booking-cd"><span>Starts in</span>${countdown(infoFor(ev).date, "cd-sm")}</div>` : ""}
+      </div>
+      ${ticketCard(user, ev)}
+      <div class="action-row my-booking-actions">
+        <button class="btn secondary nav-trigger" data-screen="booking" type="button">Switch event</button>
+        <button class="btn secondary danger-ghost" data-cancel-booking type="button">Cancel booking</button>
+      </div>
+    </section>` : `
+    <section class="my-booking app-card is-empty">
+      <div>${icon("ticket")}</div>
+      <h2>No booking yet</h2>
+      <p>Pick a fight night and your ticket will appear here.</p>
+      <button class="btn nav-trigger" data-screen="booking" type="button">Browse events${icon("arrow")}</button>
+    </section>`;
+  root.querySelector(".dashboard-grid").insertAdjacentHTML("afterend", html);
+  const upcomingTitle = root.querySelector(".timeline-card h2");
+  if (upcomingTitle) upcomingTitle.textContent = ev ? "More fight nights" : "Upcoming events";
 };
 
 /* ---------- Admin KPI icons + fill ring ---------- */
@@ -158,6 +189,15 @@ renderAdmin = function renderAdminPlus() {
     const label = document.getElementById(id)?.previousElementSibling;
     if (label && !label.querySelector(".ic")) label.insertAdjacentHTML("afterbegin", icon(name));
   });
+  document.getElementById("adminToday").textContent = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+  const hot = [...state.events].map((e) => ({ e, pct: e.quota ? e.registered / e.quota : 0 })).filter((x) => x.pct < 1).sort((a, b) => b.pct - a.pct).slice(0, 4);
+  document.getElementById("adminHot").innerHTML = hot.map(({ e, pct }) => `
+    <li><span class="hot-name">${e.name}<small>${infoFor(e).city || ""}</small></span><b>${Math.round(pct * 100)}%</b><em>${e.quota - e.registered} left</em></li>`).join("") || `<li class="empty-note">No events on sale.</li>`;
+  const recent = state.users.filter((u) => u.registeredEvent).sort((a, b) => (b.bookedAt || "").localeCompare(a.bookedAt || "")).slice(0, 5);
+  document.getElementById("adminRecent").innerHTML = recent.map((u) => {
+    const ev = eventById(u.registeredEvent);
+    return `<li><span class="avatar" aria-hidden="true">${u.username.slice(0, 2).toUpperCase()}</span><span><b>${u.username}</b><small>${ev ? ev.name : "Removed event"}</small></span><time>${u.bookedAt ? new Date(u.bookedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : ""}</time></li>`;
+  }).join("") || `<li class="empty-note">No bookings yet.</li>`;
   const cap = state.events.reduce((s, e) => s + e.quota, 0);
   const sold = state.events.reduce((s, e) => s + e.registered, 0);
   const pct = cap ? Math.round((sold / cap) * 100) : 0;

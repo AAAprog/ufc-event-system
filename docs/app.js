@@ -12,13 +12,23 @@ const defaultState = {
       nationality: "Saudi Arabia",
       gender: "Male",
       registeredEvent: null
-    }
+    },
+    { id: 2, username: "sara_k", email: "sara@example.com", password: "member123", nationality: "United Arab Emirates", gender: "Female", registeredEvent: 1, bookedAt: "2026-11-18T19:12:00" },
+    { id: 3, username: "omar.q", email: "omar@example.com", password: "member123", nationality: "Kuwait", gender: "Male", registeredEvent: 4, bookedAt: "2026-11-19T10:40:00" },
+    { id: 4, username: "lina_m", email: "lina@example.com", password: "member123", nationality: "Jordan", gender: "Female", registeredEvent: 3, bookedAt: "2026-11-19T21:05:00" }
   ],
   events: [
     { id: 1, name: "Main Card VIP", quota: 150, registered: 64 },
     { id: 2, name: "Heavyweight Showcase", quota: 120, registered: 78 },
-    { id: 3, name: "Lightweight Contenders", quota: 100, registered: 92 }
-  ]
+    { id: 3, name: "Lightweight Contenders", quota: 100, registered: 92 },
+    { id: 4, name: "Riyadh Fight Night", quota: 200, registered: 141 },
+    { id: 5, name: "Welterweight Clash", quota: 140, registered: 37 },
+    { id: 6, name: "Doha Showdown", quota: 160, registered: 158 },
+    { id: 7, name: "Bantamweight Rising", quota: 90, registered: 21 },
+    { id: 8, name: "Kuwait Combat Night", quota: 120, registered: 66 },
+    { id: 9, name: "Jeddah Title Night", quota: 220, registered: 120 }
+  ],
+  seed: 2
 };
 
 const nationalities = [
@@ -66,6 +76,15 @@ function loadState() {
 
     if (!Array.isArray(savedState.events) || savedState.events.length === 0) {
       savedState.events = structuredClone(defaultState.events);
+    }
+
+    // One-time upgrade: add the newer sample events and members to older saved demos.
+    if ((savedState.seed || 1) < defaultState.seed) {
+      const haveEvents = new Set(savedState.events.map((e) => e.id));
+      defaultState.events.forEach((e) => { if (!haveEvents.has(e.id)) savedState.events.push(structuredClone(e)); });
+      const haveUsers = new Set((savedState.users || []).map((u) => u.id));
+      defaultState.users.forEach((u) => { if (!haveUsers.has(u.id)) savedState.users.push(structuredClone(u)); });
+      savedState.seed = defaultState.seed;
     }
 
     return savedState;
@@ -117,6 +136,17 @@ function deleteEvent(eventId) {
   saveState();
   render();
   showToast("Event deleted.");
+}
+
+function cancelBooking() {
+  const user = currentUser();
+  const ev = eventById(user.registeredEvent);
+  if (ev) ev.registered = Math.max(ev.registered - 1, 0);
+  user.registeredEvent = null;
+  user.bookedAt = null;
+  saveState();
+  render();
+  showToast("Booking cancelled. Your seat is released.");
 }
 
 function deleteUser(userId) {
@@ -185,8 +215,33 @@ function statusFor(event) {
 const EVENT_INFO = {
   1: { date: "2026-12-12T20:00", venue: "Etihad Arena", city: "Abu Dhabi", price: 120 },
   2: { date: "2027-01-23T21:00", venue: "Kingdom Arena", city: "Riyadh", price: 95 },
-  3: { date: "2027-02-20T19:30", venue: "Coca-Cola Arena", city: "Dubai", price: 70 }
+  3: { date: "2027-02-20T19:30", venue: "Coca-Cola Arena", city: "Dubai", price: 70 },
+  4: { date: "2026-12-19T21:00", venue: "Kingdom Arena", city: "Riyadh", price: 110 },
+  5: { date: "2027-01-09T20:30", venue: "Etihad Arena", city: "Abu Dhabi", price: 85 },
+  6: { date: "2027-01-30T20:00", venue: "Lusail Sports Arena", city: "Doha", price: 90 },
+  7: { date: "2027-02-06T19:00", venue: "Coca-Cola Arena", city: "Dubai", price: 60 },
+  8: { date: "2027-03-06T20:00", venue: "Sheikh Jaber Al-Ahmad Arena", city: "Kuwait City", price: 75 },
+  9: { date: "2027-03-27T21:00", venue: "Jeddah Superdome", city: "Jeddah", price: 130 }
 };
+
+// Events page filters
+const eventFilter = { city: "All", query: "", sort: "date" };
+
+function visibleEvents() {
+  const q = eventFilter.query.trim().toLowerCase();
+  const list = state.events.filter((e) => {
+    const info = infoFor(e);
+    if (eventFilter.city !== "All" && info.city !== eventFilter.city) return false;
+    return !q || `${e.name} ${info.venue} ${info.city}`.toLowerCase().includes(q);
+  });
+  const left = (e) => Math.max(e.quota - e.registered, 0);
+  const by = {
+    date: (a, b) => (infoFor(a).date || "9").localeCompare(infoFor(b).date || "9"),
+    price: (a, b) => (infoFor(a).price ?? 1e9) - (infoFor(b).price ?? 1e9),
+    seats: (a, b) => left(a) - left(b)
+  };
+  return list.sort(by[eventFilter.sort]);
+}
 
 function infoFor(event) {
   return EVENT_INFO[event.id] || { date: "", venue: "Venue to be announced", city: "", price: null };
@@ -268,9 +323,8 @@ function renderMember() {
   const bookedEvent = eventById(user.registeredEvent);
   document.getElementById("memberName").textContent = user.username;
   document.getElementById("memberBooking").textContent = bookedEvent ? `Booked: ${bookedEvent.name}` : "No event booked yet";
-  document.getElementById("metricBooking").textContent = bookedEvent ? bookedEvent.name : "None";
-  document.getElementById("metricEvents").textContent = state.events.length;
-  document.getElementById("memberEvents").innerHTML = state.events.map(eventCard).join("") || `<p class="empty-note">No fight nights are on sale right now.</p>`;
+  const upcoming = visibleEventsFor(user).slice(0, 3);
+  document.getElementById("memberEvents").innerHTML = upcoming.map(eventCard).join("") || `<p class="empty-note">No other fight nights are on sale right now.</p>`;
 
   const profileForm = document.getElementById("profileForm");
   profileForm.username.value = user.username;
@@ -278,10 +332,28 @@ function renderMember() {
   profileForm.nationality.value = user.nationality;
 }
 
+function visibleEventsFor(user) {
+  return state.events
+    .filter((e) => e.id !== user.registeredEvent && e.quota > e.registered)
+    .sort((a, b) => (infoFor(a).date || "9").localeCompare(infoFor(b).date || "9"));
+}
+
+function renderFilters() {
+  const cities = ["All", ...new Set(state.events.map((e) => infoFor(e).city).filter(Boolean))];
+  if (!cities.includes(eventFilter.city)) eventFilter.city = "All";
+  document.getElementById("cityChips").innerHTML = cities.map((c) => `
+    <button type="button" class="city-chip ${eventFilter.city === c ? "is-on" : ""}" data-city="${c}" aria-pressed="${eventFilter.city === c}">${c === "All" ? "All cities" : c}</button>`).join("");
+  document.getElementById("eventSort").value = eventFilter.sort;
+}
+
 function renderBooking() {
   const user = currentUser();
   const bookedEvent = eventById(user.registeredEvent);
-  document.getElementById("bookingEvents").innerHTML = state.events.map((event) => {
+  renderFilters();
+  const shown = visibleEvents();
+  document.getElementById("eventCount").textContent = `${shown.length} ${shown.length === 1 ? "event" : "events"}`;
+  document.getElementById("bookingEvents").innerHTML = shown.length ? "" : `<p class="empty-note">No fight nights match your search. <button class="link-btn" type="button" data-clear-filters>Clear filters</button></p>`;
+  document.getElementById("bookingEvents").innerHTML += shown.map((event) => {
     const left = Math.max(event.quota - event.registered, 0);
     const isBooked = user.registeredEvent === event.id;
     const disabled = left === 0 && !isBooked;
@@ -378,6 +450,7 @@ document.addEventListener("click", (event) => {
     closeDeleteDialog();
     if (deletion.type === "event") deleteEvent(deletion.id);
     if (deletion.type === "user") deleteUser(deletion.id);
+    if (deletion.type === "booking") cancelBooking();
     return;
   }
   const nav = event.target.closest(".nav-trigger");
@@ -401,6 +474,7 @@ document.addEventListener("click", (event) => {
     if (previousEvent) previousEvent.registered -= 1;
     nextEvent.registered += 1;
     user.registeredEvent = nextEventId;
+    user.bookedAt = new Date().toISOString();
     saveState();
     render();
     showToast(`Booked: ${nextEvent.name}`);
@@ -629,3 +703,20 @@ render();
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && pendingDeletion) closeDeleteDialog();
 });
+// Events page filters and My booking actions
+document.addEventListener("click", (event) => {
+  const chip = event.target.closest("[data-city]");
+  if (chip) { eventFilter.city = chip.dataset.city; renderBooking(); return; }
+  if (event.target.closest("[data-clear-filters]")) {
+    eventFilter.city = "All"; eventFilter.query = ""; document.getElementById("eventSearch").value = ""; renderBooking(); return;
+  }
+  if (event.target.closest("[data-cancel-booking]")) {
+    const ev = eventById(currentUser().registeredEvent);
+    if (!ev) return;
+    openDeleteDialog({ type: "booking", id: ev.id, label: "booking", message: `Cancel your seat for ${ev.name}? It will be released to other fans.` });
+    document.getElementById("confirmDelete").textContent = "Cancel booking";
+  }
+});
+document.getElementById("eventSearch").addEventListener("input", (event) => { eventFilter.query = event.target.value; renderBooking(); });
+document.getElementById("eventSort").addEventListener("change", (event) => { eventFilter.sort = event.target.value; renderBooking(); });
+document.getElementById("cancelDelete").addEventListener("click", () => { document.getElementById("confirmDelete").textContent = "Delete"; });

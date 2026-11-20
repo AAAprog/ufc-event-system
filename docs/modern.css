@@ -444,3 +444,58 @@ tbody tr:hover td { background: rgba(255, 255, 255, 0.07); }
 /* Home panel holds the grid at full width */
 #screen-home .panel { width: 100%; }
 .event-list, .booking-list { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+/* =========== Flow v3: events toolbar, My booking, admin lists =========== */
+#screen-memberDashboard .dashboard-grid { grid-template-columns: 1fr; }
+
+.event-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 16px; align-items: center; margin-bottom: 18px; padding: 16px; border-radius: 18px; }
+.search-field input { width: 100%; }
+.sort-field { display: inline-flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.85rem; font-weight: 600; letter-spacing: 0; text-transform: none; white-space: nowrap; }
+.sort-field select { min-height: 44px; width: auto; }
+.city-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.city-chip { min-height: 36px; padding: 0 14px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 999px; background: transparent; color: var(--muted); font: 600 0.85rem Inter, sans-serif; cursor: pointer; transition: all 0.2s var(--ease); }
+.city-chip:hover { color: #fff; border-color: rgba(255, 255, 255, 0.25); }
+.city-chip.is-on { background: #fff; border-color: #fff; color: #120608; }
+.event-count { justify-self: end; color: var(--muted); font-size: 0.85rem; }
+
+.my-booking { display: grid; gap: 18px; margin-top: 18px; padding: 24px; border-radius: 22px; }
+.my-booking-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; }
+.my-booking-head h2 { margin: 0; }
+.my-booking-head p { margin: 4px 0 0; color: var(--muted); }
+.my-booking-cd { display: grid; gap: 6px; }
+.my-booking-cd > span { color: var(--muted); font-size: 0.8rem; font-weight: 600; }
+.my-booking-cd .cd-sm { margin: 0; }
+.my-booking-actions { margin: 0; }
+.danger-ghost { color: #ff9a9a !important; }
+.danger-ghost:hover { border-color: rgba(255, 42, 42, 0.5) !important; }
+.my-booking.is-empty { justify-items: center; text-align: center; padding: 40px 24px; }
+.my-booking.is-empty .ic { width: 34px; height: 34px; color: var(--gold); }
+.my-booking.is-empty h2, .my-booking.is-empty p { margin: 0; }
+.my-booking.is-empty p { color: var(--muted); }
+.ticket-cta { margin: 0; }
+
+.admin-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); gap: 18px; align-items: start; }
+.admin-side { display: grid; gap: 18px; }
+.admin-grid .timeline-card { margin: 0; }
+.hot-list, .recent-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; counter-reset: hot; }
+.hot-list li { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.03); counter-increment: hot; }
+.hot-list li::before { content: counter(hot); color: var(--muted); font-weight: 700; }
+.hot-name { display: grid; font-weight: 650; }
+.hot-name small, .recent-list small { color: var(--muted); font-weight: 500; font-size: 0.8rem; }
+.hot-list b { color: #ffd166; }
+.hot-list em { color: var(--muted); font-style: normal; font-size: 0.8rem; }
+.recent-list li { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.recent-list li > span:nth-child(2) { display: grid; }
+.recent-list time { color: var(--muted); font-size: 0.8rem; }
+.avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 42, 42, 0.18); color: #ffb3b3; font-weight: 700; font-size: 0.8rem; }
+
+@media (max-width: 900px) { .admin-grid { grid-template-columns: 1fr; } }
+@media (max-width: 620px) {
+  .event-toolbar { grid-template-columns: 1fr; }
+  .event-count { justify-self: start; }
+  .city-chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+  .city-chip { flex: none; }
+  .my-booking { padding: 18px; }
+}
+.admin-grid { margin-top: 18px; }
+#adminCapacity { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }

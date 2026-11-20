@@ -103,14 +103,9 @@
             <span id="memberBooking">No event booked yet</span>
           </div>
           <div class="action-row">
-            <button class="btn nav-trigger" data-screen="booking" type="button">Open Booking</button>
+            <button class="btn nav-trigger" data-screen="booking" type="button">Browse events</button>
             <button class="btn secondary nav-trigger" data-screen="profile" type="button">Update Profile</button>
           </div>
-        </section>
-
-        <section class="metric-grid member-metrics">
-          <div><span>Current Booking</span><strong id="metricBooking">None</strong></div>
-          <div><span>Available Events</span><strong id="metricEvents">0</strong></div>
         </section>
       </div>
       <section class="timeline-card app-card">
@@ -123,6 +118,20 @@
       <div class="section-head">
         <h1>Book tickets</h1>
         <p>Choose a fight night. Seat counts update as people book, so grab yours early.</p>
+      </div>
+      <div class="event-toolbar app-card">
+        <label class="search-field"><span class="sr-only">Search events</span>
+          <input type="search" id="eventSearch" placeholder="Search by event, venue or city">
+        </label>
+        <label class="sort-field">Sort by
+          <select id="eventSort">
+            <option value="date">Soonest</option>
+            <option value="price">Lowest price</option>
+            <option value="seats">Fewest seats left</option>
+          </select>
+        </label>
+        <div class="city-chips" id="cityChips" role="group" aria-label="Filter by city"></div>
+        <span class="event-count" id="eventCount"></span>
       </div>
       <div class="booking-list" id="bookingEvents"></div>
       <section class="confirmation-card app-card" id="bookingConfirmation">
@@ -174,6 +183,7 @@
         <h1>Admin Control Center</h1>
         <div class="pill-row">
           <span>Signed in as admin</span>
+          <span id="adminToday"></span>
           <button class="pill-btn" id="adminSignOut" type="button">Sign out</button>
         </div>
         <div class="action-row">
@@ -187,10 +197,22 @@
         <div><span>Event Setup</span><strong id="adminEvents">0</strong></div>
         <div><span>Seats Left</span><strong id="adminSeats">0</strong></div>
       </section>
-      <section class="timeline-card app-card">
-        <h2>Event capacity</h2>
-        <div class="capacity-list" id="adminCapacity"></div>
-      </section>
+      <div class="admin-grid">
+        <section class="timeline-card app-card">
+          <h2>Event capacity</h2>
+          <div class="capacity-list" id="adminCapacity"></div>
+        </section>
+        <div class="admin-side">
+          <section class="timeline-card app-card">
+            <h2>Selling fast</h2>
+            <ol class="hot-list" id="adminHot"></ol>
+          </section>
+          <section class="timeline-card app-card">
+            <h2>Recent bookings</h2>
+            <ul class="recent-list" id="adminRecent"></ul>
+          </section>
+        </div>
+      </div>
     </section>
 
     <section class="screen" id="screen-manageEvents">
