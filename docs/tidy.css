@@ -1,0 +1,56 @@
+/* ===== Tidy layer: one button system, ordered cards, separate sign-in page ===== */
+
+/* --- Buttons: one consistent system --- */
+.btn, .text-link, .small-danger, body.auth-screen .btn {
+  min-height: 46px;
+  padding: 0 22px;
+  border-radius: 12px;
+  font: 650 0.95rem Inter, system-ui, sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+  gap: 8px;
+}
+.btn-sm { min-height: 38px; padding: 0 16px; font-size: 0.88rem; }
+.small-danger { min-height: 36px; padding: 0 14px; font-size: 0.85rem; color: #ff9a9a; }
+.action-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.footer-actions { margin-top: 18px; }
+
+/* --- Header: links + separate account button --- */
+.topbar { gap: 16px; }
+.topbar > nav:not(.admin-nav) { margin-inline-start: auto; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.auth-back { display: none; }
+body.admin-mode .topbar-actions { display: none; }
+
+/* --- Separate sign-in page: logo + back link + centred form only --- */
+body.auth-page .topbar > nav, body.auth-page .topbar-actions, body.auth-page .site-footer, body.auth-page .tabbar { display: none !important; }
+body.auth-page .auth-back { display: inline-flex; margin-inline-start: auto; }
+body.auth-page .screen.is-active { display: grid; place-items: center; min-height: calc(100vh - 80px); padding: 32px 0; }
+body.auth-page .auth-layout { width: 100%; justify-content: center; }
+body.auth-page .auth-card { width: min(440px, 100%); }
+body.auth-page .auth-card .btn[type="submit"] { width: 100%; }
+body.auth-page { padding-bottom: 0 !important; }
+
+/* --- Cards: status beside the title, no empty gaps --- */
+.event-list, .booking-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.event-card { grid-template-columns: 48px minmax(0, 1fr); grid-template-rows: auto; position: relative; padding-top: 18px; }
+.event-card > .event-body { grid-row: 1; }
+.event-card > .chip { position: absolute; top: 14px; inset-inline-end: 14px; grid-row: auto; }
+.event-card .event-body h3 { padding-inline-end: 84px; }
+.booking-card { grid-template-rows: auto 1fr auto; }
+.see-all { display: flex; justify-content: center; margin-top: 18px; }
+
+/* --- Consistent section spacing --- */
+#screen-home > * + * { margin-top: 20px; }
+.home-extra, .cta-band, .marquee { margin-top: 20px; }
+
+@media (max-width: 1000px) { .event-list, .booking-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) {
+  .event-list, .booking-list { grid-template-columns: 1fr; }
+  .topbar-actions { display: none; }
+  .topbar { justify-content: space-between; }
+  body.auth-page .topbar { justify-content: space-between; }
+}
+body.auth-page .app-shell { width: min(1120px, calc(100% - 32px)); margin-inline: auto; }
+body.auth-page .auth-layout { display: grid; grid-template-columns: 1fr; justify-items: center; }
+.topbar .auth-back.btn { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; box-shadow: none !important; color: #fff; }
