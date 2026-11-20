@@ -1,0 +1,95 @@
+/* Inspired layer (Magic UI / React Bits / cta.gallery / footer.design / scroll shaders). Same palette and fonts. */
+
+/* Hero light field: slow drifting glows, shader-like but pure CSS */
+.hero-card { isolation: isolate; }
+.light-field { position: absolute; inset: 0; z-index: -1; overflow: hidden; border-radius: inherit; pointer-events: none; }
+.light-field i { position: absolute; width: 420px; height: 420px; border-radius: 50%; filter: blur(60px); opacity: 0.35; animation: drift 18s ease-in-out infinite alternate; }
+.light-field i:nth-child(1) { background: #ff2a2a; top: -180px; right: -80px; }
+.light-field i:nth-child(2) { background: #ffcc00; bottom: -260px; left: 20%; opacity: 0.12; animation-duration: 24s; }
+.light-field i:nth-child(3) { background: #8f0f14; top: 30%; left: -160px; animation-duration: 21s; }
+@keyframes drift { to { transform: translate3d(-60px, 40px, 0) scale(1.15); } }
+.hero-card::after { display: none; }
+
+/* Word-by-word title reveal */
+.hero-copy h1 .word { display: inline-block; animation: word-in 0.7s var(--ease) both; animation-delay: calc(var(--i) * 0.08s); }
+@keyframes word-in { from { opacity: 0; transform: translateY(18px); filter: blur(6px); } }
+
+/* Border beam: a light that travels around the hero card edge */
+@property --beam { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.beam-card { position: relative; }
+.beam-card::before {
+  content: ""; position: absolute; inset: 0; padding: 1px; border-radius: inherit; pointer-events: none;
+  background: conic-gradient(from var(--beam), transparent 0 80%, rgba(255, 204, 0, 0.9) 88%, #ff2a2a 94%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: beam 6s linear infinite;
+}
+@keyframes beam { to { --beam: 360deg; } }
+
+/* Shimmer button */
+.btn.shimmer { position: relative; overflow: hidden; }
+.btn.shimmer::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.35) 50%, transparent 65%);
+  transform: translateX(-120%); animation: shimmer 3.2s ease-in-out infinite;
+}
+@keyframes shimmer { 55%, 100% { transform: translateX(120%); } }
+
+/* Venue marquee */
+.marquee { position: relative; margin: 18px 0 0; overflow: hidden; border-block: 1px solid rgba(255, 255, 255, 0.06); -webkit-mask: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.marquee-track { display: flex; gap: 28px; width: max-content; padding: 16px 0; animation: marquee 40s linear infinite; white-space: nowrap; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+.marquee span { font: 700 1.15rem Oswald, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.75); }
+.marquee em { font-style: normal; color: var(--gold); margin-left: 6px; }
+.marquee b { color: var(--red); }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* Cursor spotlight on cards */
+.event-card, .booking-card, .city-tile, .tier, .metric-grid > div, .hero-summary div { position: relative; }
+.event-card::after, .booking-card::after, .city-tile::after, .tier::after, .metric-grid > div::after, .hero-summary div::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 0.3s var(--ease);
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.07), transparent 60%);
+}
+:is(.event-card, .booking-card, .city-tile, .tier, .metric-grid > div, .hero-summary div):hover::after { opacity: 1; }
+
+/* Reveal on scroll */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+.reveal.is-in { opacity: 1; transform: none; }
+
+/* Closing CTA band */
+.cta-band {
+  position: relative; overflow: hidden; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 22px;
+  margin-top: 24px; padding: 36px; border-radius: 24px; border: 1px solid rgba(255, 42, 42, 0.3);
+  background: radial-gradient(600px 220px at 85% 0%, rgba(255, 42, 42, 0.35), transparent 70%), linear-gradient(135deg, #2a0a0e, #120406);
+}
+.cta-band h2 { margin: 0 0 6px; font-size: clamp(1.8rem, 4vw, 2.6rem); }
+.cta-band p { margin: 0; color: var(--muted); max-width: 46ch; }
+.cta-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* Fuller footer */
+.site-footer { padding: 44px 0 0; overflow: hidden; }
+.footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 28px; width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+.footer-logo { font: 700 1.2rem Oswald, sans-serif; letter-spacing: 0.15em; text-transform: uppercase; border-left: 4px solid var(--red); padding-left: 10px; }
+.footer-brand p { margin: 12px 0 16px; color: var(--muted); max-width: 40ch; }
+.footer-news { display: flex; gap: 8px; max-width: 420px; }
+.footer-news input { flex: 1; min-height: 44px; }
+.footer-news .btn { min-height: 44px; padding: 0 16px; font-family: Inter, sans-serif; text-transform: none; letter-spacing: 0; }
+.site-footer nav { display: grid; align-content: start; gap: 6px; }
+.site-footer h3 { margin: 0 0 6px; color: #fff; font: 650 0.9rem Inter, sans-serif; text-transform: none; letter-spacing: 0; }
+.site-footer nav button { justify-self: start; padding: 4px 0; border: 0; background: none; color: var(--muted); font: 500 0.9rem Inter, sans-serif; cursor: pointer; text-transform: none; letter-spacing: 0; min-height: 0; }
+.site-footer nav button:hover { color: #fff; }
+.footer-base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; width: min(1120px, calc(100% - 32px)); margin: 32px auto 0; padding: 18px 0; border-top: 1px solid rgba(255, 255, 255, 0.08); color: var(--muted); font-size: 0.82rem; }
+.footer-word { margin-bottom: -0.18em; text-align: center; font: 700 clamp(4rem, 15vw, 12rem)/1 Oswald, sans-serif; letter-spacing: 0.04em; color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, 0.08); background: linear-gradient(rgba(255, 42, 42, 0.18), transparent 80%); -webkit-background-clip: text; background-clip: text; user-select: none; }
+
+@media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; } .footer-brand { grid-column: 1 / -1; } }
+@media (max-width: 620px) {
+  .cta-band { padding: 24px; }
+  .cta-actions, .cta-actions .btn { width: 100%; }
+  .footer-news { flex-direction: column; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .light-field i, .beam-card::before, .btn.shimmer::after, .marquee-track, .hero-copy h1 .word { animation: none !important; }
+  .reveal { opacity: 1; transform: none; }
+}
