@@ -418,3 +418,29 @@ tbody tr:hover td { background: rgba(255, 255, 255, 0.07); }
 .hero-next-fight { font-family: Inter, system-ui, sans-serif; text-transform: none; letter-spacing: -0.01em; font-weight: 650; }
 #screen-home .hero-summary strong { font-size: 1.6rem; }
 #screen-home .hero-summary span { text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 0.85rem; color: var(--muted); }
+
+/* =========== Card grid: cards side by side, not full-width rows =========== */
+.event-list, .booking-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.event-card, .booking-card {
+  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  align-items: start;
+  gap: 14px;
+  padding: 18px;
+  height: 100%;
+}
+.event-card > .date-tile, .booking-card > .date-tile { grid-row: 1; width: 48px; height: 52px; }
+.event-card > .event-body, .booking-card > .event-body { grid-row: 1 / 3; }
+.event-card > .chip { grid-column: 1 / -1; grid-row: 3; justify-self: start; }
+.booking-card > .btn { grid-column: 1 / -1; grid-row: 3; width: 100%; justify-content: center; }
+.event-facts { flex-direction: column; gap: 6px; }
+.seat-meter { max-width: none; margin-top: 4px; }
+.empty-note { grid-column: 1 / -1; }
+
+/* Home panel holds the grid at full width */
+#screen-home .panel { width: 100%; }
+.event-list, .booking-list { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
