@@ -12,13 +12,23 @@ const defaultState = {
       nationality: "Saudi Arabia",
       gender: "Male",
       registeredEvent: null
-    }
+    },
+    { id: 2, username: "sara_k", email: "sara@example.com", password: "member123", nationality: "United Arab Emirates", gender: "Female", registeredEvent: 1, bookedAt: "2026-11-18T19:12:00", seats: ["C4", "C5"], tierName: "Floor", total: 2235.6 },
+    { id: 3, username: "omar.q", email: "omar@example.com", password: "member123", nationality: "Kuwait", gender: "Male", registeredEvent: 4, bookedAt: "2026-11-19T10:40:00", seats: ["A7"], tierName: "Cageside", total: 2036.88 },
+    { id: 4, username: "lina_m", email: "lina@example.com", password: "member123", nationality: "Jordan", gender: "Female", registeredEvent: 3, bookedAt: "2026-11-19T21:05:00", seats: ["F10", "F11", "F12"], tierName: "Stands", total: 968.76 }
   ],
   events: [
     { id: 1, name: "Main Card VIP", quota: 150, registered: 64 },
     { id: 2, name: "Heavyweight Showcase", quota: 120, registered: 78 },
-    { id: 3, name: "Lightweight Contenders", quota: 100, registered: 92 }
-  ]
+    { id: 3, name: "Lightweight Contenders", quota: 100, registered: 92 },
+    { id: 4, name: "Riyadh Fight Night", quota: 200, registered: 141 },
+    { id: 5, name: "Welterweight Clash", quota: 140, registered: 37 },
+    { id: 6, name: "Doha Showdown", quota: 160, registered: 158 },
+    { id: 7, name: "Bantamweight Rising", quota: 90, registered: 21 },
+    { id: 8, name: "Kuwait Combat Night", quota: 120, registered: 66 },
+    { id: 9, name: "Jeddah Title Night", quota: 220, registered: 120 }
+  ],
+  seed: 2
 };
 
 const nationalities = [
@@ -68,6 +78,15 @@ function loadState() {
       savedState.events = structuredClone(defaultState.events);
     }
 
+    // One-time upgrade: add the newer sample events and members to older saved demos.
+    if ((savedState.seed || 1) < defaultState.seed) {
+      const haveEvents = new Set(savedState.events.map((e) => e.id));
+      defaultState.events.forEach((e) => { if (!haveEvents.has(e.id)) savedState.events.push(structuredClone(e)); });
+      const haveUsers = new Set((savedState.users || []).map((u) => u.id));
+      defaultState.users.forEach((u) => { if (!haveUsers.has(u.id)) savedState.users.push(structuredClone(u)); });
+      savedState.seed = defaultState.seed;
+    }
+
     return savedState;
   } catch {
     localStorage.removeItem(storageKey);
@@ -113,16 +132,31 @@ function closeDeleteDialog() {
 
 function deleteEvent(eventId) {
   state.events = state.events.filter((item) => item.id !== eventId);
-  state.users = state.users.map((user) => user.registeredEvent === eventId ? { ...user, registeredEvent: null } : user);
+  state.users = state.users.map((user) => user.registeredEvent === eventId
+    ? { ...user, registeredEvent: null, seats: [], total: 0, bookedAt: null }
+    : user);
   saveState();
   render();
   showToast("Event deleted.");
 }
 
+function cancelBooking() {
+  const user = currentUser();
+  const ev = eventById(user.registeredEvent);
+  if (ev) ev.registered = Math.max(ev.registered - (user.seats?.length || 1), 0);
+  user.registeredEvent = null;
+  user.bookedAt = null;
+  user.seats = [];
+  user.total = 0;
+  saveState();
+  render();
+  showToast("Booking cancelled. Your seat is released.");
+}
+
 function deleteUser(userId) {
   const user = state.users.find((item) => item.id === userId);
   const bookedEvent = user ? eventById(user.registeredEvent) : null;
-  if (bookedEvent) bookedEvent.registered = Math.max(bookedEvent.registered - 1, 0);
+  if (bookedEvent) bookedEvent.registered = Math.max(bookedEvent.registered - (user.seats?.length || 1), 0);
   state.users = state.users.filter((item) => item.id !== userId);
   if (state.currentUserId === userId) {
     state.currentUserId = state.users[0]?.id || null;
@@ -181,22 +215,121 @@ function statusFor(event) {
   return "Open";
 }
 
+// Display details for each event (date, venue, starting price).
+const EVENT_INFO = {
+  1: { date: "2026-12-12T20:00", venue: "Etihad Arena", city: "Abu Dhabi", price: 450 },
+  2: { date: "2027-01-23T21:00", venue: "Kingdom Arena", city: "Riyadh", price: 355 },
+  3: { date: "2027-02-20T19:30", venue: "Coca-Cola Arena", city: "Dubai", price: 260 },
+  4: { date: "2026-12-19T21:00", venue: "Kingdom Arena", city: "Riyadh", price: 410 },
+  5: { date: "2027-01-09T20:30", venue: "Etihad Arena", city: "Abu Dhabi", price: 320 },
+  6: { date: "2027-01-30T20:00", venue: "Lusail Sports Arena", city: "Doha", price: 340 },
+  7: { date: "2027-02-06T19:00", venue: "Coca-Cola Arena", city: "Dubai", price: 225 },
+  8: { date: "2027-03-06T20:00", venue: "Sheikh Jaber Al-Ahmad Arena", city: "Kuwait City", price: 280 },
+  9: { date: "2027-03-27T21:00", venue: "Jeddah Superdome", city: "Jeddah", price: 490 }
+};
+
+// Prices are in Saudi riyals.
+function sar(n, decimals = 0) {
+  return `SAR ${Number(n).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+}
+
+// Strip characters that would break the page when shown in HTML.
+function clean(text) {
+  return String(text || "").replace(/[<>"'&`]/g, "").trim();
+}
+
+// Events page filters
+const eventFilter = { city: "All", query: "", sort: "date" };
+
+function visibleEvents() {
+  const q = eventFilter.query.trim().toLowerCase();
+  const list = state.events.filter((e) => {
+    const info = infoFor(e);
+    if (eventFilter.city !== "All" && info.city !== eventFilter.city) return false;
+    return !q || `${e.name} ${info.venue} ${info.city}`.toLowerCase().includes(q);
+  });
+  const left = (e) => Math.max(e.quota - e.registered, 0);
+  const by = {
+    date: (a, b) => (infoFor(a).date || "9").localeCompare(infoFor(b).date || "9"),
+    price: (a, b) => (infoFor(a).price ?? 1e9) - (infoFor(b).price ?? 1e9),
+    seats: (a, b) => left(a) - left(b)
+  };
+  return list.sort(by[eventFilter.sort]);
+}
+
+function infoFor(event) {
+  return event.info || EVENT_INFO[event.id] || { date: "", venue: "Venue to be announced", city: "", price: null };
+}
+
+function eventMeta(event) {
+  const info = infoFor(event);
+  const when = info.date
+    ? new Date(info.date).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+    : "Date to be announced";
+  return `${when} · ${info.venue}${info.city ? `, ${info.city}` : ""}`;
+}
+
+function seatLine(event) {
+  const left = Math.max(event.quota - event.registered, 0);
+  const price = infoFor(event).price;
+  return `${left === 0 ? "Sold out" : `${left} seats left`}${price ? ` · From ${sar(price)}` : ""}`;
+}
+
+// Line icons (Lucide, ISC license), inlined.
+const ICON_PATHS = {
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  seat: '<path d="M7 18v3M17 18v3M5 11V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5"/><path d="M3 13a2 2 0 0 1 4 0v1h10v-1a2 2 0 0 1 4 0v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
+  tag: '<path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4Z"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  arrow: '<path d="M5 12h14M12 5l7 7-7 7"/>'
+};
+function icon(name) {
+  return `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name]}</svg>`;
+}
+
+function dateTile(event) {
+  const d = infoFor(event).date;
+  if (!d) return `<div class="date-tile"><b>TBA</b></div>`;
+  const dt = new Date(d);
+  return `<div class="date-tile" aria-hidden="true"><b>${dt.toLocaleDateString("en-GB", { day: "2-digit" })}</b><span>${dt.toLocaleDateString("en-GB", { month: "short" })}</span></div>`;
+}
+
+function eventDetails(event) {
+  const info = infoFor(event);
+  const left = Math.max(event.quota - event.registered, 0);
+  const pct = event.quota ? Math.round((event.registered / event.quota) * 100) : 0;
+  const when = info.date ? new Date(info.date).toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit" }) : "Date to be announced";
+  return `
+    <div class="event-body">
+      <h3>${event.name}</h3>
+      <ul class="event-facts">
+        <li>${icon("calendar")}${when}</li>
+        <li>${icon("pin")}${info.venue}${info.city ? `, ${info.city}` : ""}</li>
+        ${info.price ? `<li>${icon("tag")}From ${sar(info.price)}</li>` : ""}
+      </ul>
+      <div class="seat-meter" role="img" aria-label="${pct}% of seats booked"><i style="width:${pct}%"></i></div>
+      <p class="seat-text ${left > 0 && left <= 10 ? "is-low" : ""}">${icon("seat")}${left === 0 ? "Sold out" : `${left} of ${event.quota} seats left`}</p>
+    </div>`;
+}
+
 function eventCard(event) {
   const left = Math.max(event.quota - event.registered, 0);
   return `
     <article class="event-card">
-      <div>
-        <h3>${event.name}</h3>
-        <p>${left} seats left · ${event.registered}/${event.quota} booked</p>
-      </div>
-      <strong class="${statusFor(event) === "Low Seats" ? "low" : ""}">${statusFor(event)}</strong>
+      ${dateTile(event)}
+      ${eventDetails(event)}
+      <strong class="chip ${left === 0 ? "is-full" : statusFor(event) === "Low Seats" ? "low" : ""}">${left === 0 ? "Sold out" : statusFor(event)}</strong>
     </article>
   `;
 }
 
 function renderHome() {
   document.getElementById("homeTotalSeats").textContent = `${totalSeatsLeft()} seats left`;
-  document.getElementById("homeEvents").innerHTML = state.events.map(eventCard).join("");
+  document.getElementById("homeEvents").innerHTML = state.events.map(eventCard).join("") || `<p class="empty-note">No fight nights are on sale right now. Check back soon.</p>`;
+  document.getElementById("heroEventCount").textContent = state.events.length;
+  const next = state.events.map((e) => infoFor(e).date).filter(Boolean).sort()[0];
+  document.getElementById("heroNextDate").textContent = next ? new Date(next).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "TBA";
 }
 
 function renderMember() {
@@ -204,8 +337,8 @@ function renderMember() {
   const bookedEvent = eventById(user.registeredEvent);
   document.getElementById("memberName").textContent = user.username;
   document.getElementById("memberBooking").textContent = bookedEvent ? `Booked: ${bookedEvent.name}` : "No event booked yet";
-  document.getElementById("metricBooking").textContent = bookedEvent ? bookedEvent.name : "None";
-  document.getElementById("metricEvents").textContent = state.events.length;
+  const upcoming = visibleEventsFor(user).slice(0, 3);
+  document.getElementById("memberEvents").innerHTML = upcoming.map(eventCard).join("") || `<p class="empty-note">No other fight nights are on sale right now.</p>`;
 
   const profileForm = document.getElementById("profileForm");
   profileForm.username.value = user.username;
@@ -213,32 +346,62 @@ function renderMember() {
   profileForm.nationality.value = user.nationality;
 }
 
+function visibleEventsFor(user) {
+  return state.events
+    .filter((e) => e.id !== user.registeredEvent && e.quota > e.registered)
+    .sort((a, b) => (infoFor(a).date || "9").localeCompare(infoFor(b).date || "9"));
+}
+
+function renderFilters() {
+  const cities = ["All", ...new Set(state.events.map((e) => infoFor(e).city).filter(Boolean))];
+  if (!cities.includes(eventFilter.city)) eventFilter.city = "All";
+  document.getElementById("cityChips").innerHTML = cities.map((c) => `
+    <button type="button" class="city-chip ${eventFilter.city === c ? "is-on" : ""}" data-city="${c}" aria-pressed="${eventFilter.city === c}">${c === "All" ? "All cities" : c}</button>`).join("");
+  document.getElementById("eventSort").value = eventFilter.sort;
+}
+
 function renderBooking() {
   const user = currentUser();
   const bookedEvent = eventById(user.registeredEvent);
-  document.getElementById("bookingEvents").innerHTML = state.events.map((event) => {
+  renderFilters();
+  const shown = visibleEvents();
+  document.getElementById("eventCount").textContent = `${shown.length} ${shown.length === 1 ? "event" : "events"}`;
+  document.getElementById("bookingEvents").innerHTML = shown.length ? "" : `<p class="empty-note">No fight nights match your search. <button class="link-btn" type="button" data-clear-filters>Clear filters</button></p>`;
+  document.getElementById("bookingEvents").innerHTML += shown.map((event) => {
     const left = Math.max(event.quota - event.registered, 0);
     const isBooked = user.registeredEvent === event.id;
     const disabled = left === 0 && !isBooked;
     return `
-      <article class="booking-card">
-        <div>
-          <h3>${event.name}</h3>
-          <p>${left} seats left · ${event.registered}/${event.quota} booked</p>
-        </div>
+      <article class="booking-card ${isBooked ? "is-booked" : ""}">
+        ${dateTile(event)}
+        ${eventDetails(event)}
         <button class="btn ${isBooked ? "secondary" : ""}" data-book="${event.id}" ${disabled ? "disabled" : ""} type="button">
-          ${isBooked ? "Current Event" : user.registeredEvent ? "Switch Event" : "Book Event"}
+          ${isBooked ? `${icon("check")}Booked` : left === 0 ? "Sold out" : user.registeredEvent ? "Switch to this" : `Book now${icon("arrow")}`}
         </button>
       </article>
     `;
   }).join("");
 
   document.getElementById("bookingSummaryText").textContent = bookedEvent
-    ? `Confirmed: ${user.username} is registered for ${bookedEvent.name}. Admin metrics and event capacity update automatically.`
-    : "No event selected yet. Choose an event above to preview the confirmation state.";
+    ? `You're booked for ${bookedEvent.name} (${eventMeta(bookedEvent)}). You can switch to another fight night any time before it sells out.`
+    : "You haven't booked a fight night yet. Pick one above to reserve your seat.";
+}
+
+function renderCapacity() {
+  const list = document.getElementById("adminCapacity");
+  if (!list) return;
+  list.innerHTML = state.events.map((event) => {
+    const pct = event.quota ? Math.round((event.registered / event.quota) * 100) : 0;
+    return `
+      <div class="capacity-row">
+        <div class="capacity-top"><strong>${event.name}</strong><span>${event.registered} / ${event.quota} · ${pct}%</span></div>
+        <div class="capacity-bar" role="img" aria-label="${pct}% full"><i style="width:${Math.min(100, pct)}%"></i></div>
+      </div>`;
+  }).join("") || `<p class="empty-note">No events yet. Add one from Manage events.</p>`;
 }
 
 function renderAdmin() {
+  renderCapacity();
   const bookedUsers = state.users.filter((user) => user.registeredEvent !== null).length;
   document.getElementById("adminUsers").textContent = state.users.length;
   document.getElementById("adminBooked").textContent = bookedUsers;
@@ -301,6 +464,7 @@ document.addEventListener("click", (event) => {
     closeDeleteDialog();
     if (deletion.type === "event") deleteEvent(deletion.id);
     if (deletion.type === "user") deleteUser(deletion.id);
+    if (deletion.type === "booking") cancelBooking();
     return;
   }
   const nav = event.target.closest(".nav-trigger");
@@ -324,6 +488,7 @@ document.addEventListener("click", (event) => {
     if (previousEvent) previousEvent.registered -= 1;
     nextEvent.registered += 1;
     user.registeredEvent = nextEventId;
+    user.bookedAt = new Date().toISOString();
     saveState();
     render();
     showToast(`Booked: ${nextEvent.name}`);
@@ -387,7 +552,7 @@ document.addEventListener("input", (event) => {
   const nameInput = event.target.closest("[data-event-name]");
   if (nameInput) {
     const editedEvent = eventById(Number(nameInput.dataset.eventName));
-    editedEvent.name = nameInput.value.trim() || editedEvent.name;
+    editedEvent.name = clean(nameInput.value) || editedEvent.name;
     saveState();
     renderHome();
     renderBooking();
@@ -409,10 +574,20 @@ document.addEventListener("input", (event) => {
 document.getElementById("registerForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
-  const username = normalizeText(form.get("username"));
-  const email = normalizeText(form.get("email"));
+  const username = clean(form.get("username"));
+  const email = clean(form.get("email"));
   const password = String(form.get("password") || "");
   const confirmPassword = String(form.get("confirm_password") || "");
+
+  if (username.length < 3) {
+    showToast("Username needs at least 3 characters.");
+    return;
+  }
+
+  if (password.length < 8) {
+    showToast("Password needs at least 8 characters.");
+    return;
+  }
 
   if (password !== confirmPassword) {
     showToast("Passwords do not match.");
@@ -467,14 +642,24 @@ document.getElementById("loginForm").addEventListener("submit", (event) => {
   navigate("memberDashboard");
 });
 
+document.getElementById("adminSignOut").addEventListener("click", () => {
+  state.adminSignedIn = false;
+  saveState();
+  showToast("Signed out of admin.");
+  navigate("home");
+});
+
 document.getElementById("adminLoginForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const inputs = event.currentTarget.querySelectorAll("input");
   if (inputs[0].value !== "admin" || inputs[1].value !== "admin123") {
-    showToast("Invalid admin credentials.");
+    showToast("That username and password don't match an admin account.");
     return;
   }
-  showToast("Admin signed in.");
+  state.adminSignedIn = true;
+  saveState();
+  event.currentTarget.reset();
+  showToast("Signed in as admin.");
   navigate("adminDashboard");
 });
 
@@ -482,8 +667,8 @@ document.getElementById("profileForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const user = currentUser();
   const form = new FormData(event.currentTarget);
-  const username = normalizeText(form.get("username"));
-  const email = normalizeText(form.get("email"));
+  const username = clean(form.get("username"));
+  const email = clean(form.get("email"));
   const currentPassword = String(form.get("current_password") || "");
   const newPassword = String(form.get("new_password") || "");
 
@@ -523,22 +708,31 @@ document.getElementById("userSearchForm").addEventListener("submit", (event) => 
 document.getElementById("addEventForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
-  const name = normalizeText(form.get("name"));
-  const quota = Number(form.get("quota"));
-  if (state.events.some((event) => event.name.toLowerCase() === name.toLowerCase())) {
-    showToast("Event name already exists.");
+  const name = clean(form.get("name"));
+  const quota = Math.floor(Number(form.get("quota")));
+  const price = Math.floor(Number(form.get("price")));
+  const date = String(form.get("date") || "");
+  const city = clean(form.get("city"));
+  const venue = clean(form.get("venue"));
+  if (!name) { showToast("Give the event a name."); return; }
+  if (state.events.some((item) => item.name.toLowerCase() === name.toLowerCase())) {
+    showToast("An event with that name already exists.");
     return;
   }
+  if (!(quota >= 1)) { showToast("Capacity must be at least 1 seat."); return; }
+  if (!(price >= 1)) { showToast("Starting price must be at least SAR 1."); return; }
+  if (!date || new Date(date) < new Date()) { showToast("Pick a date in the future."); return; }
   state.events.push({
     id: nextId(state.events),
     name,
     quota,
-    registered: 0
+    registered: 0,
+    info: { date, venue: venue || "Venue to be announced", city, price }
   });
   event.currentTarget.reset();
   saveState();
   render();
-  showToast("Event added.");
+  showToast(`${name} added.`);
 });
 
 populateNationalityMenus();
@@ -547,3 +741,20 @@ render();
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && pendingDeletion) closeDeleteDialog();
 });
+// Events page filters and My booking actions
+document.addEventListener("click", (event) => {
+  const chip = event.target.closest("[data-city]");
+  if (chip) { eventFilter.city = chip.dataset.city; renderBooking(); return; }
+  if (event.target.closest("[data-clear-filters]")) {
+    eventFilter.city = "All"; eventFilter.query = ""; document.getElementById("eventSearch").value = ""; renderBooking(); return;
+  }
+  if (event.target.closest("[data-cancel-booking]")) {
+    const ev = eventById(currentUser().registeredEvent);
+    if (!ev) return;
+    openDeleteDialog({ type: "booking", id: ev.id, label: "booking", message: `Cancel your seat for ${ev.name}? It will be released to other fans.` });
+    document.getElementById("confirmDelete").textContent = "Cancel booking";
+  }
+});
+document.getElementById("eventSearch").addEventListener("input", (event) => { eventFilter.query = event.target.value; renderBooking(); });
+document.getElementById("eventSort").addEventListener("change", (event) => { eventFilter.sort = event.target.value; renderBooking(); });
+document.getElementById("cancelDelete").addEventListener("click", () => { document.getElementById("confirmDelete").textContent = "Delete"; });

@@ -10,15 +10,15 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="modal.css">
   <link rel="stylesheet" href="member-dashboard.css">
+  <link rel="stylesheet" href="modern.css">
 </head>
 <body>
   <header class="topbar">
     <button class="brand nav-trigger" data-screen="home" type="button">UFC Fight Night</button>
     <nav>
       <button class="nav-trigger is-active" data-screen="home" type="button">Home</button>
-      <button class="nav-trigger" data-screen="login" type="button">Member</button>
-      <button class="nav-trigger" data-screen="adminLogin" type="button">Admin</button>
-      <button class="nav-trigger" data-screen="source" type="button">Source</button>
+      <button class="nav-trigger" data-screen="booking" type="button">Events</button>
+      <button class="nav-trigger" data-screen="login" type="button">My account</button>
     </nav>
   </header>
 
@@ -27,21 +27,22 @@
       <div class="hero-grid">
         <div class="hero-card app-card">
           <div class="hero-copy">
-            <h1>UFC Event Management System</h1>
+            <h1>Fight night tickets</h1>
+            <p class="hero-lead">Book your seat for the next UFC fight nights in Abu Dhabi, Riyadh and Dubai. Seats are limited and sell fast.</p>
             <div class="action-row">
-              <button class="btn nav-trigger" data-screen="register" type="button">Create Member</button>
-              <button class="btn secondary nav-trigger" data-screen="adminLogin" type="button">Admin Access</button>
+              <button class="btn nav-trigger" data-screen="booking" type="button">Book tickets</button>
+              <button class="btn secondary nav-trigger" data-screen="register" type="button">Create account</button>
             </div>
           </div>
-          <aside class="hero-summary" aria-label="System overview">
-            <div><strong>3</strong><span>Available events</span></div>
-            <div><strong>Live</strong><span>Capacity tracking</span></div>
+          <aside class="hero-summary" aria-label="At a glance">
+            <div><strong id="heroNextDate">12 Dec</strong><span>Next fight night</span></div>
+            <div><strong id="heroEventCount">3</strong><span>Upcoming events</span></div>
           </aside>
         </div>
 
         <aside class="panel app-card">
           <div class="panel-head">
-            <span>Live Event Preview</span>
+            <span>Upcoming events</span>
             <strong id="homeTotalSeats">0 seats left</strong>
           </div>
           <div class="event-list" id="homeEvents"></div>
@@ -102,38 +103,43 @@
             <span id="memberBooking">No event booked yet</span>
           </div>
           <div class="action-row">
-            <button class="btn nav-trigger" data-screen="booking" type="button">Open Booking</button>
+            <button class="btn nav-trigger" data-screen="booking" type="button">Browse events</button>
             <button class="btn secondary nav-trigger" data-screen="profile" type="button">Update Profile</button>
           </div>
         </section>
-
-        <section class="metric-grid member-metrics">
-          <div><span>Current Booking</span><strong id="metricBooking">None</strong></div>
-          <div><span>Available Events</span><strong id="metricEvents">0</strong></div>
-        </section>
       </div>
       <section class="timeline-card app-card">
-        <h2>Member Journey</h2>
-        <div class="timeline">
-          <div><span>01</span><strong>Account created</strong><p>Member profile details are prepared for event registration.</p></div>
-          <div><span>02</span><strong>Event selected</strong><p>Booking updates the selected event and seat count.</p></div>
-          <div><span>03</span><strong>Profile managed</strong><p>Member details can be updated from the dashboard.</p></div>
-        </div>
+        <div class="panel-head"><h2>Upcoming events</h2><button class="link-btn nav-trigger" data-screen="booking" type="button">See all events</button></div>
+        <div class="event-list" id="memberEvents"></div>
       </section>
     </section>
 
     <section class="screen" id="screen-booking">
       <div class="section-head">
-        <h1>Book Event</h1>
-        <p>Select one UFC event. The seat count updates instantly so viewers can see the registration logic.</p>
+        <h1>Book tickets</h1>
+        <p>Choose a fight night. Seat counts update as people book, so grab yours early.</p>
+      </div>
+      <div class="event-toolbar app-card">
+        <label class="search-field"><span class="sr-only">Search events</span>
+          <input type="search" id="eventSearch" placeholder="Search by event, venue or city">
+        </label>
+        <label class="sort-field">Sort by
+          <select id="eventSort">
+            <option value="date">Soonest</option>
+            <option value="price">Lowest price</option>
+            <option value="seats">Fewest seats left</option>
+          </select>
+        </label>
+        <div class="city-chips" id="cityChips" role="group" aria-label="Filter by city"></div>
+        <span class="event-count" id="eventCount"></span>
       </div>
       <div class="booking-list" id="bookingEvents"></div>
       <section class="confirmation-card app-card" id="bookingConfirmation">
-        <h2>Booking Summary</h2>
+        <h2>Your booking</h2>
         <p id="bookingSummaryText">No event selected yet. Choose an event above to preview the confirmation state.</p>
       </section>
       <div class="action-row footer-actions">
-        <button class="btn secondary nav-trigger" data-screen="memberDashboard" type="button">Back to Dashboard</button>
+        <button class="btn secondary nav-trigger" data-screen="memberDashboard" type="button">My account</button>
       </div>
     </section>
 
@@ -177,7 +183,8 @@
         <h1>Admin Control Center</h1>
         <div class="pill-row">
           <span>Signed in as admin</span>
-          <span>System status: online</span>
+          <span id="adminToday"></span>
+          <button class="pill-btn" id="adminSignOut" type="button">Sign out</button>
         </div>
         <div class="action-row">
           <button class="btn nav-trigger" data-screen="manageUsers" type="button">Manage Users</button>
@@ -185,35 +192,52 @@
         </div>
       </section>
       <section class="metric-grid admin-metrics">
-        <div><span>Member Accounts</span><strong id="adminUsers">0</strong></div>
-        <div><span>Booked Members</span><strong id="adminBooked">0</strong></div>
-        <div><span>Event Setup</span><strong id="adminEvents">0</strong></div>
-        <div><span>Seats Left</span><strong id="adminSeats">0</strong></div>
+        <div><span>Revenue</span><strong id="adminUsers">0</strong><small class="kpi-sub" id="kpiRevenueSub"></small></div>
+        <div><span>Tickets sold</span><strong id="adminBooked">0</strong><small class="kpi-sub" id="kpiSoldSub"></small></div>
+        <div><span>Members</span><strong id="adminEvents">0</strong><small class="kpi-sub" id="kpiMembersSub"></small></div>
+        <div><span>Seats left</span><strong id="adminSeats">0</strong><small class="kpi-sub" id="kpiSeatsSub"></small></div>
       </section>
-      <section class="timeline-card app-card">
-        <h2>Admin Capabilities</h2>
-        <div class="timeline">
-          <div><span>01</span><strong>Manage events</strong><p>Create, edit, delete, and monitor event capacity.</p></div>
-          <div><span>02</span><strong>Manage users</strong><p>Review member accounts and event registrations.</p></div>
-          <div><span>03</span><strong>Track availability</strong><p>See booked members and remaining seats instantly.</p></div>
+      <div class="admin-grid">
+        <section class="timeline-card app-card">
+          <h2>Event capacity</h2>
+          <div class="capacity-list" id="adminCapacity"></div>
+        </section>
+        <div class="admin-side">
+          <section class="timeline-card app-card">
+            <h2>Selling fast</h2>
+            <ol class="hot-list" id="adminHot"></ol>
+          </section>
+          <section class="timeline-card app-card">
+            <h2>Recent bookings</h2>
+            <ul class="recent-list" id="adminRecent"></ul>
+          </section>
         </div>
-      </section>
+      </div>
     </section>
 
     <section class="screen" id="screen-manageEvents">
       <div class="section-head">
-        <h1>Manage Events</h1>
-        <p>Create events, update quotas, and delete events from the admin table.</p>
+        <button class="back-link nav-trigger" data-screen="adminDashboard" type="button">← Admin overview</button>
+        <h1>Manage events</h1>
+        <p>Add fight nights, edit details and capacity, and keep an eye on sales.</p>
       </div>
-      <form class="inline-form" id="addEventForm">
-        <input name="name" placeholder="Event name" required>
-        <input name="quota" type="number" min="1" placeholder="Quota" required>
-        <button class="btn" type="submit">Add Event</button>
+      <form class="add-event app-card" id="addEventForm" novalidate>
+        <h2>Add a fight night</h2>
+        <div class="add-grid">
+          <label>Event name<input name="name" placeholder="e.g. Riyadh Fight Night" required></label>
+          <label>Date and time<input name="date" type="datetime-local" required></label>
+          <label>City<input name="city" placeholder="e.g. Riyadh" list="cityOptions"></label>
+          <label>Venue<input name="venue" placeholder="e.g. Kingdom Arena"></label>
+          <label>Capacity (seats)<input name="quota" type="number" min="1" placeholder="200" required></label>
+          <label>Starting price (SAR)<input name="price" type="number" min="1" placeholder="300" required></label>
+        </div>
+        <datalist id="cityOptions"><option value="Riyadh"><option value="Jeddah"><option value="Abu Dhabi"><option value="Dubai"><option value="Doha"><option value="Kuwait City"></datalist>
+        <button class="btn" type="submit">Add event</button>
       </form>
       <div class="table-card">
         <table>
           <thead>
-            <tr><th>ID</th><th>Name</th><th>Quota</th><th>Registered</th><th>Status</th><th>Action</th></tr>
+            <tr><th>Event</th><th>Date</th><th>Price (SAR)</th><th>Capacity</th><th>Sold</th><th>Status</th><th></th></tr>
           </thead>
           <tbody id="eventsTable"></tbody>
         </table>
@@ -226,8 +250,9 @@
 
     <section class="screen" id="screen-manageUsers">
       <div class="section-head">
-        <h1>Manage Users</h1>
-        <p>Review registered users and their selected event.</p>
+        <button class="back-link nav-trigger" data-screen="adminDashboard" type="button">← Admin overview</button>
+        <h1>Manage members</h1>
+        <p>Search members, see their bookings and remove accounts.</p>
       </div>
       <form class="inline-form search-form" id="userSearchForm">
         <input name="query" placeholder="Search username, email, or nationality">
@@ -237,7 +262,7 @@
       <div class="table-card">
         <table>
           <thead>
-            <tr><th>ID</th><th>Username</th><th>Email</th><th>Nationality</th><th>Registered Event</th><th>Action</th></tr>
+            <tr><th>Member</th><th>Nationality</th><th>Booking</th><th>Seats</th><th>Paid</th><th></th></tr>
           </thead>
           <tbody id="usersTable"></tbody>
         </table>
@@ -259,6 +284,17 @@
     </section>
   </main>
 
+  <footer class="site-footer">
+    <div class="site-footer-in">
+      <span>© 2026 UFC Fight Night · Fan project, not affiliated with UFC</span>
+      <nav class="footer-links" aria-label="Footer">
+        <button class="nav-trigger" data-screen="booking" type="button">Events</button>
+        <button class="nav-trigger" data-screen="adminLogin" type="button">Staff sign-in</button>
+        <button class="nav-trigger" data-screen="source" type="button">Source code</button>
+      </nav>
+    </div>
+  </footer>
+
   <div class="confirm-dialog" id="confirmDialog" aria-hidden="true">
     <div class="confirm-dialog__backdrop" data-close-confirm></div>
     <section class="confirm-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle" aria-describedby="confirmDialogMessage">
@@ -273,5 +309,9 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="app.js"></script>
+  <script src="extras.js"></script>
+  <script src="checkout.js"></script>
+  <script src="home-auth.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>
