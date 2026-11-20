@@ -206,16 +206,51 @@ function seatLine(event) {
   return `${left === 0 ? "Sold out" : `${left} seats left`}${price ? ` · From $${price}` : ""}`;
 }
 
+// Line icons (Lucide, ISC license), inlined.
+const ICON_PATHS = {
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  seat: '<path d="M7 18v3M17 18v3M5 11V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5"/><path d="M3 13a2 2 0 0 1 4 0v1h10v-1a2 2 0 0 1 4 0v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
+  tag: '<path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4Z"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  arrow: '<path d="M5 12h14M12 5l7 7-7 7"/>'
+};
+function icon(name) {
+  return `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name]}</svg>`;
+}
+
+function dateTile(event) {
+  const d = infoFor(event).date;
+  if (!d) return `<div class="date-tile"><b>TBA</b></div>`;
+  const dt = new Date(d);
+  return `<div class="date-tile" aria-hidden="true"><b>${dt.toLocaleDateString("en-GB", { day: "2-digit" })}</b><span>${dt.toLocaleDateString("en-GB", { month: "short" })}</span></div>`;
+}
+
+function eventDetails(event) {
+  const info = infoFor(event);
+  const left = Math.max(event.quota - event.registered, 0);
+  const pct = event.quota ? Math.round((event.registered / event.quota) * 100) : 0;
+  const when = info.date ? new Date(info.date).toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit" }) : "Date to be announced";
+  return `
+    <div class="event-body">
+      <h3>${event.name}</h3>
+      <ul class="event-facts">
+        <li>${icon("calendar")}${when}</li>
+        <li>${icon("pin")}${info.venue}${info.city ? `, ${info.city}` : ""}</li>
+        ${info.price ? `<li>${icon("tag")}From $${info.price}</li>` : ""}
+      </ul>
+      <div class="seat-meter" role="img" aria-label="${pct}% of seats booked"><i style="width:${pct}%"></i></div>
+      <p class="seat-text ${left > 0 && left <= 10 ? "is-low" : ""}">${icon("seat")}${left === 0 ? "Sold out" : `${left} of ${event.quota} seats left`}</p>
+    </div>`;
+}
+
 function eventCard(event) {
   const left = Math.max(event.quota - event.registered, 0);
   return `
     <article class="event-card">
-      <div>
-        <h3>${event.name}</h3>
-        <p class="event-meta">${eventMeta(event)}</p>
-        <p>${seatLine(event)}</p>
-      </div>
-      <strong class="${statusFor(event) === "Low Seats" ? "low" : ""}">${left === 0 ? "Sold out" : statusFor(event)}</strong>
+      ${dateTile(event)}
+      ${eventDetails(event)}
+      <strong class="chip ${left === 0 ? "is-full" : statusFor(event) === "Low Seats" ? "low" : ""}">${left === 0 ? "Sold out" : statusFor(event)}</strong>
     </article>
   `;
 }
@@ -251,14 +286,11 @@ function renderBooking() {
     const isBooked = user.registeredEvent === event.id;
     const disabled = left === 0 && !isBooked;
     return `
-      <article class="booking-card">
-        <div>
-          <h3>${event.name}</h3>
-          <p class="event-meta">${eventMeta(event)}</p>
-          <p>${seatLine(event)}</p>
-        </div>
+      <article class="booking-card ${isBooked ? "is-booked" : ""}">
+        ${dateTile(event)}
+        ${eventDetails(event)}
         <button class="btn ${isBooked ? "secondary" : ""}" data-book="${event.id}" ${disabled ? "disabled" : ""} type="button">
-          ${isBooked ? "Booked" : left === 0 ? "Sold out" : user.registeredEvent ? "Switch to this" : "Book now"}
+          ${isBooked ? `${icon("check")}Booked` : left === 0 ? "Sold out" : user.registeredEvent ? "Switch to this" : `Book now${icon("arrow")}`}
         </button>
       </article>
     `;
