@@ -215,3 +215,84 @@ tbody tr:hover td { background: rgba(255, 255, 255, 0.07); }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 @media (max-width: 620px) { #screen-home .hero-summary { display: grid; grid-template-columns: 1fr 1fr; width: 100%; } #screen-home .hero-summary div { min-width: 0; } }
+
+/* =========== Inspired upgrades (extras.js) =========== */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Home: next-up block with flip countdown */
+.hero-next { display: grid; gap: 10px; margin: 0 0 24px; }
+.hero-next-label { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: var(--gold); font-weight: 700; font-size: 0.82rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 0 rgba(255, 42, 42, 0.6); animation: live 1.8s infinite; }
+@keyframes live { 70% { box-shadow: 0 0 0 8px rgba(255, 42, 42, 0); } }
+.hero-next-fight { margin: 0; font: 700 1.5rem Oswald, sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
+.hero-next-fight i { font-style: normal; color: var(--red); font-size: 1rem; margin: 0 6px; }
+.cd { display: flex; gap: 8px; }
+.cd > div { position: relative; display: grid; justify-items: center; min-width: 62px; padding: 10px 6px 8px; border: 1px solid var(--card-border); border-radius: 12px; background: rgba(0, 0, 0, 0.35); overflow: hidden; perspective: 400px; }
+.cd > div::after { content: ""; position: absolute; inset-inline: 0; top: 46%; height: 1px; background: rgba(0, 0, 0, 0.6); }
+.cd b { font: 700 1.8rem/1 Oswald, sans-serif; font-variant-numeric: tabular-nums; }
+.cd b.flip { animation: flip 0.45s var(--ease); }
+@keyframes flip { from { transform: rotateX(-90deg); opacity: 0.3; } }
+.cd span { margin-top: 3px; color: var(--muted); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.cd-sm { margin-top: 12px; }
+.cd-sm > div { min-width: 46px; padding: 7px 4px 6px; }
+.cd-sm b { font-size: 1.25rem; }
+
+/* Booking button loading */
+.btn.is-loading { pointer-events: none; opacity: 0.9; }
+.spinner { width: 15px; height: 15px; border: 2px solid rgba(255, 255, 255, 0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Ticket card */
+.confirmation-card.has-ticket { display: grid; gap: 16px; }
+.ticket { position: relative; display: grid; grid-template-columns: 1fr 170px; border: 1px solid rgba(255, 204, 0, 0.35); border-radius: 20px; background: linear-gradient(135deg, rgba(255, 42, 42, 0.14), rgba(255, 255, 255, 0.02) 60%); overflow: hidden; }
+.ticket.is-new { animation: ticket-in 0.6s var(--ease); }
+@keyframes ticket-in { from { opacity: 0; transform: translateY(16px) rotate(-1deg); } }
+.ticket::before, .ticket::after { content: ""; position: absolute; inset-inline-end: 158px; width: 24px; height: 24px; border-radius: 50%; background: #0d0405; }
+.ticket::before { top: -12px; }
+.ticket::after { bottom: -12px; }
+.ticket-main { padding: 22px; }
+.ticket-ref { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: var(--gold); font: 700 0.85rem Oswald, sans-serif; letter-spacing: 0.14em; }
+.ticket h3 { margin: 6px 0 2px; font-size: 1.6rem; }
+.ticket-fight { margin: 0 0 14px; color: var(--muted); font-weight: 600; }
+.ticket dl { display: grid; grid-template-columns: repeat(3, auto); gap: 14px 22px; justify-content: start; margin: 0; }
+.ticket dt { color: var(--muted); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.ticket dd { margin: 2px 0 0; font-weight: 700; }
+.ticket-stub { display: grid; place-content: center; justify-items: center; gap: 8px; padding: 18px; border-inline-start: 2px dashed rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.25); }
+.ticket-stub span { color: var(--muted); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; }
+.qr { width: 108px; height: 108px; padding: 6px; border-radius: 10px; background: #fff; fill: #111; }
+
+/* Admin: KPI icons + fill ring */
+.metric-grid span { display: inline-flex; align-items: center; gap: 8px; }
+.metric-grid span .ic { width: 16px; height: 16px; color: var(--gold); }
+.fill-ring { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; padding: 16px; border: 1px solid var(--card-border); border-radius: 16px; background: rgba(255, 255, 255, 0.025); }
+.fill-ring strong { display: block; font-size: 1.05rem; }
+.fill-ring span { color: var(--muted); font-size: 0.88rem; }
+.ring { --p: 0; display: grid; place-items: center; flex: none; width: 84px; height: 84px; border-radius: 50%; background: conic-gradient(var(--red) calc(var(--p) * 1%), rgba(255, 255, 255, 0.08) 0); position: relative; }
+.ring::before { content: ""; position: absolute; inset: 10px; border-radius: 50%; background: #150709; }
+.ring b { position: relative; font: 700 1.3rem Oswald, sans-serif; }
+
+/* Phone: floating glass tab bar */
+.tabbar { display: none; }
+@media (max-width: 620px) {
+  .topbar nav { display: none; }
+  .topbar { justify-content: center; }
+  .tabbar {
+    position: fixed; z-index: 30; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom));
+    display: flex; gap: 0; padding: 6px; transform: translateX(-50%);
+    border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 999px;
+    background: rgba(20, 7, 9, 0.72); backdrop-filter: saturate(170%) blur(18px);
+    box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.8);
+  }
+  .tabbar-pill { position: absolute; top: 6px; left: 6px; height: calc(100% - 12px); border-radius: 999px; background: rgba(255, 42, 42, 0.22); border: 1px solid rgba(255, 42, 42, 0.45); transition: transform 0.35s var(--ease), width 0.35s var(--ease), opacity 0.2s; }
+  .tabbar button { position: relative; display: grid; justify-items: center; gap: 2px; min-width: 84px; min-height: 52px; padding: 6px 12px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font: 700 0.7rem Inter, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
+  .tabbar button .ic { width: 20px; height: 20px; }
+  .tabbar button.is-current { color: #fff; }
+  body { padding-bottom: 96px; }
+  .toast { bottom: auto; }
+  .ticket { grid-template-columns: 1fr; }
+  .ticket::before, .ticket::after { display: none; }
+  .ticket-stub { border-inline-start: 0; border-top: 2px dashed rgba(255, 255, 255, 0.2); }
+  .ticket dl { grid-template-columns: 1fr 1fr; }
+  .cd > div { min-width: 0; flex: 1; }
+}
+.link-btn { white-space: nowrap; }
