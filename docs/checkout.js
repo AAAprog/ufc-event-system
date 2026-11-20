@@ -2,18 +2,20 @@
 // Flow: Book now → Choose seats → Payment → My booking.
 
 const TIERS = [
-  { id: "cage", name: "Cageside", note: "Closest to the Octagon", mult: 4, rows: 2, cols: 10 },
-  { id: "floor", name: "Floor", note: "Great view of every round", mult: 2, rows: 3, cols: 12 },
-  { id: "stands", name: "Stands", note: "Best value in the arena", mult: 1, rows: 4, cols: 14 }
+  { id: "cage", name: "Cageside", note: "Closest to the Octagon", mult: 4, rows: 3, cols: 12 },
+  { id: "floor", name: "Floor", note: "Great view of every round", mult: 2, rows: 6, cols: 16 },
+  { id: "stands", name: "Stands", note: "Best value in the arena", mult: 1, rows: 8, cols: 20 }
 ];
 const SERVICE_FEE = 0.08;
 const VAT = 0.15;
-const MAX_SEATS = 4;
+const MAX_SEATS = 6;
+const seatsLeft = (ev) => Math.max(ev.quota - ev.registered, 0);
+const maxSeatsFor = (ev) => Math.min(MAX_SEATS, seatsLeft(ev));
 const HOLD_MS = 10 * 60 * 1000;
 
 const checkout = { eventId: null, tier: "floor", seats: [], holdEnds: 0, timer: null, paying: false };
 
-const money = (n) => `$${n.toFixed(2)}`;
+const money = (n) => sar(n, 2);
 const tierById = (id) => TIERS.find((t) => t.id === id);
 const tierPrice = (ev, tier) => (infoFor(ev).price || 50) * tierById(tier).mult;
 
@@ -119,13 +121,13 @@ function renderSeats() {
                 <button type="button" role="radio" class="tier ${checkout.tier === t.id ? "is-on" : ""}" data-tier="${t.id}" aria-checked="${checkout.tier === t.id}">
                   <i class="tier-dot tier-${t.id}" aria-hidden="true"></i>
                   <span><b>${t.name}</b><small>${t.note}</small></span>
-                  <strong>${money(tierPrice(ev, t.id))}</strong>
+                  <strong>${sar(tierPrice(ev, t.id))}</strong>
                 </button>`).join("")}
             </div>
           </div>
         </section>
         <section class="app-card pick-card">
-          <div class="pick-head"><h2>${tierById(checkout.tier).name} seats</h2><span>Pick up to ${MAX_SEATS}</span></div>
+          <div class="pick-head"><h2>${tierById(checkout.tier).name} seats</h2><span>Pick up to ${maxSeatsFor(ev)} · ${seatsLeft(ev)} left at this event</span></div>
           ${seatGrid(ev)}
         </section>
       </div>
@@ -269,6 +271,7 @@ document.addEventListener("click", (e) => {
     e.stopImmediatePropagation();
     const id = Number(book.dataset.book);
     if (currentUser().registeredEvent === id) { navigate("memberDashboard"); return; }
+    if (!seatsLeft(eventById(id))) { showToast("This event is sold out."); return; }
     checkout.eventId = id;
     checkout.seats = [];
     checkout.holdEnds = 0;
@@ -282,7 +285,11 @@ document.addEventListener("click", (e) => {
   if (seat) {
     const id = seat.dataset.seat;
     if (checkout.seats.includes(id)) checkout.seats = checkout.seats.filter((s) => s !== id);
-    else if (checkout.seats.length >= MAX_SEATS) { showToast(`You can pick up to ${MAX_SEATS} seats per booking.`); return; }
+    else if (checkout.seats.length >= maxSeatsFor(eventById(checkout.eventId))) {
+      const ev = eventById(checkout.eventId);
+      showToast(seatsLeft(ev) < MAX_SEATS ? `Only ${seatsLeft(ev)} seats are left for this event.` : `You can pick up to ${MAX_SEATS} seats per booking.`);
+      return;
+    }
     else checkout.seats = [...checkout.seats, id];
     if (checkout.seats.length && !checkout.holdEnds) checkout.holdEnds = Date.now() + HOLD_MS;
     if (!checkout.seats.length) checkout.holdEnds = 0;

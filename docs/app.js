@@ -13,9 +13,9 @@ const defaultState = {
       gender: "Male",
       registeredEvent: null
     },
-    { id: 2, username: "sara_k", email: "sara@example.com", password: "member123", nationality: "United Arab Emirates", gender: "Female", registeredEvent: 1, bookedAt: "2026-11-18T19:12:00" },
-    { id: 3, username: "omar.q", email: "omar@example.com", password: "member123", nationality: "Kuwait", gender: "Male", registeredEvent: 4, bookedAt: "2026-11-19T10:40:00" },
-    { id: 4, username: "lina_m", email: "lina@example.com", password: "member123", nationality: "Jordan", gender: "Female", registeredEvent: 3, bookedAt: "2026-11-19T21:05:00" }
+    { id: 2, username: "sara_k", email: "sara@example.com", password: "member123", nationality: "United Arab Emirates", gender: "Female", registeredEvent: 1, bookedAt: "2026-11-18T19:12:00", seats: ["C4", "C5"], tierName: "Floor", total: 2235.6 },
+    { id: 3, username: "omar.q", email: "omar@example.com", password: "member123", nationality: "Kuwait", gender: "Male", registeredEvent: 4, bookedAt: "2026-11-19T10:40:00", seats: ["A7"], tierName: "Cageside", total: 2036.88 },
+    { id: 4, username: "lina_m", email: "lina@example.com", password: "member123", nationality: "Jordan", gender: "Female", registeredEvent: 3, bookedAt: "2026-11-19T21:05:00", seats: ["F10", "F11", "F12"], tierName: "Stands", total: 968.76 }
   ],
   events: [
     { id: 1, name: "Main Card VIP", quota: 150, registered: 64 },
@@ -132,7 +132,9 @@ function closeDeleteDialog() {
 
 function deleteEvent(eventId) {
   state.events = state.events.filter((item) => item.id !== eventId);
-  state.users = state.users.map((user) => user.registeredEvent === eventId ? { ...user, registeredEvent: null } : user);
+  state.users = state.users.map((user) => user.registeredEvent === eventId
+    ? { ...user, registeredEvent: null, seats: [], total: 0, bookedAt: null }
+    : user);
   saveState();
   render();
   showToast("Event deleted.");
@@ -154,7 +156,7 @@ function cancelBooking() {
 function deleteUser(userId) {
   const user = state.users.find((item) => item.id === userId);
   const bookedEvent = user ? eventById(user.registeredEvent) : null;
-  if (bookedEvent) bookedEvent.registered = Math.max(bookedEvent.registered - 1, 0);
+  if (bookedEvent) bookedEvent.registered = Math.max(bookedEvent.registered - (user.seats?.length || 1), 0);
   state.users = state.users.filter((item) => item.id !== userId);
   if (state.currentUserId === userId) {
     state.currentUserId = state.users[0]?.id || null;
@@ -215,16 +217,26 @@ function statusFor(event) {
 
 // Display details for each event (date, venue, starting price).
 const EVENT_INFO = {
-  1: { date: "2026-12-12T20:00", venue: "Etihad Arena", city: "Abu Dhabi", price: 120 },
-  2: { date: "2027-01-23T21:00", venue: "Kingdom Arena", city: "Riyadh", price: 95 },
-  3: { date: "2027-02-20T19:30", venue: "Coca-Cola Arena", city: "Dubai", price: 70 },
-  4: { date: "2026-12-19T21:00", venue: "Kingdom Arena", city: "Riyadh", price: 110 },
-  5: { date: "2027-01-09T20:30", venue: "Etihad Arena", city: "Abu Dhabi", price: 85 },
-  6: { date: "2027-01-30T20:00", venue: "Lusail Sports Arena", city: "Doha", price: 90 },
-  7: { date: "2027-02-06T19:00", venue: "Coca-Cola Arena", city: "Dubai", price: 60 },
-  8: { date: "2027-03-06T20:00", venue: "Sheikh Jaber Al-Ahmad Arena", city: "Kuwait City", price: 75 },
-  9: { date: "2027-03-27T21:00", venue: "Jeddah Superdome", city: "Jeddah", price: 130 }
+  1: { date: "2026-12-12T20:00", venue: "Etihad Arena", city: "Abu Dhabi", price: 450 },
+  2: { date: "2027-01-23T21:00", venue: "Kingdom Arena", city: "Riyadh", price: 355 },
+  3: { date: "2027-02-20T19:30", venue: "Coca-Cola Arena", city: "Dubai", price: 260 },
+  4: { date: "2026-12-19T21:00", venue: "Kingdom Arena", city: "Riyadh", price: 410 },
+  5: { date: "2027-01-09T20:30", venue: "Etihad Arena", city: "Abu Dhabi", price: 320 },
+  6: { date: "2027-01-30T20:00", venue: "Lusail Sports Arena", city: "Doha", price: 340 },
+  7: { date: "2027-02-06T19:00", venue: "Coca-Cola Arena", city: "Dubai", price: 225 },
+  8: { date: "2027-03-06T20:00", venue: "Sheikh Jaber Al-Ahmad Arena", city: "Kuwait City", price: 280 },
+  9: { date: "2027-03-27T21:00", venue: "Jeddah Superdome", city: "Jeddah", price: 490 }
 };
+
+// Prices are in Saudi riyals.
+function sar(n, decimals = 0) {
+  return `SAR ${Number(n).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+}
+
+// Strip characters that would break the page when shown in HTML.
+function clean(text) {
+  return String(text || "").replace(/[<>"'&`]/g, "").trim();
+}
 
 // Events page filters
 const eventFilter = { city: "All", query: "", sort: "date" };
@@ -246,7 +258,7 @@ function visibleEvents() {
 }
 
 function infoFor(event) {
-  return EVENT_INFO[event.id] || { date: "", venue: "Venue to be announced", city: "", price: null };
+  return event.info || EVENT_INFO[event.id] || { date: "", venue: "Venue to be announced", city: "", price: null };
 }
 
 function eventMeta(event) {
@@ -260,7 +272,7 @@ function eventMeta(event) {
 function seatLine(event) {
   const left = Math.max(event.quota - event.registered, 0);
   const price = infoFor(event).price;
-  return `${left === 0 ? "Sold out" : `${left} seats left`}${price ? ` · From $${price}` : ""}`;
+  return `${left === 0 ? "Sold out" : `${left} seats left`}${price ? ` · From ${sar(price)}` : ""}`;
 }
 
 // Line icons (Lucide, ISC license), inlined.
@@ -294,7 +306,7 @@ function eventDetails(event) {
       <ul class="event-facts">
         <li>${icon("calendar")}${when}</li>
         <li>${icon("pin")}${info.venue}${info.city ? `, ${info.city}` : ""}</li>
-        ${info.price ? `<li>${icon("tag")}From $${info.price}</li>` : ""}
+        ${info.price ? `<li>${icon("tag")}From ${sar(info.price)}</li>` : ""}
       </ul>
       <div class="seat-meter" role="img" aria-label="${pct}% of seats booked"><i style="width:${pct}%"></i></div>
       <p class="seat-text ${left > 0 && left <= 10 ? "is-low" : ""}">${icon("seat")}${left === 0 ? "Sold out" : `${left} of ${event.quota} seats left`}</p>
@@ -540,7 +552,7 @@ document.addEventListener("input", (event) => {
   const nameInput = event.target.closest("[data-event-name]");
   if (nameInput) {
     const editedEvent = eventById(Number(nameInput.dataset.eventName));
-    editedEvent.name = nameInput.value.trim() || editedEvent.name;
+    editedEvent.name = clean(nameInput.value) || editedEvent.name;
     saveState();
     renderHome();
     renderBooking();
@@ -562,10 +574,20 @@ document.addEventListener("input", (event) => {
 document.getElementById("registerForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
-  const username = normalizeText(form.get("username"));
-  const email = normalizeText(form.get("email"));
+  const username = clean(form.get("username"));
+  const email = clean(form.get("email"));
   const password = String(form.get("password") || "");
   const confirmPassword = String(form.get("confirm_password") || "");
+
+  if (username.length < 3) {
+    showToast("Username needs at least 3 characters.");
+    return;
+  }
+
+  if (password.length < 8) {
+    showToast("Password needs at least 8 characters.");
+    return;
+  }
 
   if (password !== confirmPassword) {
     showToast("Passwords do not match.");
@@ -621,7 +643,9 @@ document.getElementById("loginForm").addEventListener("submit", (event) => {
 });
 
 document.getElementById("adminSignOut").addEventListener("click", () => {
-  showToast("Signed out.");
+  state.adminSignedIn = false;
+  saveState();
+  showToast("Signed out of admin.");
   navigate("home");
 });
 
@@ -629,10 +653,13 @@ document.getElementById("adminLoginForm").addEventListener("submit", (event) => 
   event.preventDefault();
   const inputs = event.currentTarget.querySelectorAll("input");
   if (inputs[0].value !== "admin" || inputs[1].value !== "admin123") {
-    showToast("Invalid admin credentials.");
+    showToast("That username and password don't match an admin account.");
     return;
   }
-  showToast("Admin signed in.");
+  state.adminSignedIn = true;
+  saveState();
+  event.currentTarget.reset();
+  showToast("Signed in as admin.");
   navigate("adminDashboard");
 });
 
@@ -640,8 +667,8 @@ document.getElementById("profileForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const user = currentUser();
   const form = new FormData(event.currentTarget);
-  const username = normalizeText(form.get("username"));
-  const email = normalizeText(form.get("email"));
+  const username = clean(form.get("username"));
+  const email = clean(form.get("email"));
   const currentPassword = String(form.get("current_password") || "");
   const newPassword = String(form.get("new_password") || "");
 
@@ -681,22 +708,31 @@ document.getElementById("userSearchForm").addEventListener("submit", (event) => 
 document.getElementById("addEventForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
-  const name = normalizeText(form.get("name"));
-  const quota = Number(form.get("quota"));
-  if (state.events.some((event) => event.name.toLowerCase() === name.toLowerCase())) {
-    showToast("Event name already exists.");
+  const name = clean(form.get("name"));
+  const quota = Math.floor(Number(form.get("quota")));
+  const price = Math.floor(Number(form.get("price")));
+  const date = String(form.get("date") || "");
+  const city = clean(form.get("city"));
+  const venue = clean(form.get("venue"));
+  if (!name) { showToast("Give the event a name."); return; }
+  if (state.events.some((item) => item.name.toLowerCase() === name.toLowerCase())) {
+    showToast("An event with that name already exists.");
     return;
   }
+  if (!(quota >= 1)) { showToast("Capacity must be at least 1 seat."); return; }
+  if (!(price >= 1)) { showToast("Starting price must be at least SAR 1."); return; }
+  if (!date || new Date(date) < new Date()) { showToast("Pick a date in the future."); return; }
   state.events.push({
     id: nextId(state.events),
     name,
     quota,
-    registered: 0
+    registered: 0,
+    info: { date, venue: venue || "Venue to be announced", city, price }
   });
   event.currentTarget.reset();
   saveState();
   render();
-  showToast("Event added.");
+  showToast(`${name} added.`);
 });
 
 populateNationalityMenus();

@@ -27,7 +27,7 @@ renderHome = function renderHomeV3() {
         ${Object.entries(cities).map(([city, c]) => `
           <button type="button" class="city-tile" data-home-city="${city}">
             <b>${city}</b>
-            <span>${c.count} ${c.count === 1 ? "event" : "events"}${Number.isFinite(c.from) ? ` · from $${c.from}` : ""}</span>
+            <span>${c.count} ${c.count === 1 ? "event" : "events"}${Number.isFinite(c.from) ? ` · from ${sar(c.from)}` : ""}</span>
           </button>`).join("")}
       </div>
     </section>
@@ -99,16 +99,5 @@ document.addEventListener("click", (e) => {
   t.setAttribute("aria-label", show ? "Hide password" : "Show password");
 });
 
-const navigateAuth = navigate;
-navigate = function navigateWithAuth(screen) {
-  navigateAuth(screen);
-  const split = screen === "login" || screen === "register";
-  document.body.classList.toggle("auth-split", split);
-  if (split) {
-    const layout = document.querySelector(`#screen-${screen} .auth-layout`);
-    layout.querySelector(".auth-promo")?.remove();
-    layout.insertAdjacentHTML("beforeend", authPromo());
-  }
-};
 
 render();

@@ -632,3 +632,29 @@ tbody tr:hover td { background: rgba(255, 255, 255, 0.07); }
   .pick-card, .pay-card, .home-extra { padding: 16px; }
 }
 .pay-btn, .order-cta, .ticket-cta .btn, .my-booking .btn { font-family: Inter, system-ui, sans-serif; text-transform: none; letter-spacing: 0; font-weight: 650; }
+
+/* =========== Admin pages =========== */
+.kpi-sub { display: block; margin-top: 4px; color: var(--muted); font-size: 0.82rem; }
+.add-event { display: grid; gap: 16px; margin-bottom: 18px; padding: 22px; border-radius: 20px; }
+.add-event h2 { margin: 0; font: 650 1.1rem Inter, sans-serif; text-transform: none; letter-spacing: 0; }
+.add-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.add-event label { gap: 6px; font-size: 0.85rem; letter-spacing: 0; text-transform: none; }
+.add-event .btn { justify-self: start; }
+.table-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.table-tools input { max-width: 420px; }
+.cell-sub { display: block; margin-top: 3px; color: var(--muted); font-size: 0.8rem; }
+.sold-cell { white-space: nowrap; }
+.sold-cell b { margin-right: 8px; }
+.sold-cell small { margin-left: 8px; color: var(--muted); }
+.mini-bar { display: inline-block; width: 70px; height: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); vertical-align: middle; overflow: hidden; }
+.mini-bar i { display: block; height: 100%; background: rgba(255, 255, 255, 0.6); }
+.member-cell { display: flex; align-items: center; gap: 12px; }
+.table-card td .table-input { min-height: 40px; }
+.table-card td input[type="datetime-local"] { min-width: 200px; color-scheme: dark; }
+#screen-manageEvents .footer-actions, #screen-manageUsers .footer-actions { margin-top: 16px; }
+@media (max-width: 900px) { .add-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 620px) { .add-grid { grid-template-columns: 1fr; } .add-event .btn { width: 100%; } }
+#screen-manageEvents td:first-child { min-width: 230px; }
+#screen-manageEvents td:first-child .table-input { width: 100%; }
+.toast.is-error { border-color: rgba(255, 90, 90, 0.45); }
+.toast.is-error::before { background: #e5484d url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E") center / 11px no-repeat; }

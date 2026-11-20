@@ -192,10 +192,10 @@
         </div>
       </section>
       <section class="metric-grid admin-metrics">
-        <div><span>Member Accounts</span><strong id="adminUsers">0</strong></div>
-        <div><span>Booked Members</span><strong id="adminBooked">0</strong></div>
-        <div><span>Event Setup</span><strong id="adminEvents">0</strong></div>
-        <div><span>Seats Left</span><strong id="adminSeats">0</strong></div>
+        <div><span>Revenue</span><strong id="adminUsers">0</strong><small class="kpi-sub" id="kpiRevenueSub"></small></div>
+        <div><span>Tickets sold</span><strong id="adminBooked">0</strong><small class="kpi-sub" id="kpiSoldSub"></small></div>
+        <div><span>Members</span><strong id="adminEvents">0</strong><small class="kpi-sub" id="kpiMembersSub"></small></div>
+        <div><span>Seats left</span><strong id="adminSeats">0</strong><small class="kpi-sub" id="kpiSeatsSub"></small></div>
       </section>
       <div class="admin-grid">
         <section class="timeline-card app-card">
@@ -217,18 +217,27 @@
 
     <section class="screen" id="screen-manageEvents">
       <div class="section-head">
-        <h1>Manage Events</h1>
-        <p>Create events, update quotas, and delete events from the admin table.</p>
+        <button class="back-link nav-trigger" data-screen="adminDashboard" type="button">← Admin overview</button>
+        <h1>Manage events</h1>
+        <p>Add fight nights, edit details and capacity, and keep an eye on sales.</p>
       </div>
-      <form class="inline-form" id="addEventForm">
-        <input name="name" placeholder="Event name" required>
-        <input name="quota" type="number" min="1" placeholder="Quota" required>
-        <button class="btn" type="submit">Add Event</button>
+      <form class="add-event app-card" id="addEventForm" novalidate>
+        <h2>Add a fight night</h2>
+        <div class="add-grid">
+          <label>Event name<input name="name" placeholder="e.g. Riyadh Fight Night" required></label>
+          <label>Date and time<input name="date" type="datetime-local" required></label>
+          <label>City<input name="city" placeholder="e.g. Riyadh" list="cityOptions"></label>
+          <label>Venue<input name="venue" placeholder="e.g. Kingdom Arena"></label>
+          <label>Capacity (seats)<input name="quota" type="number" min="1" placeholder="200" required></label>
+          <label>Starting price (SAR)<input name="price" type="number" min="1" placeholder="300" required></label>
+        </div>
+        <datalist id="cityOptions"><option value="Riyadh"><option value="Jeddah"><option value="Abu Dhabi"><option value="Dubai"><option value="Doha"><option value="Kuwait City"></datalist>
+        <button class="btn" type="submit">Add event</button>
       </form>
       <div class="table-card">
         <table>
           <thead>
-            <tr><th>ID</th><th>Name</th><th>Quota</th><th>Registered</th><th>Status</th><th>Action</th></tr>
+            <tr><th>Event</th><th>Date</th><th>Price (SAR)</th><th>Capacity</th><th>Sold</th><th>Status</th><th></th></tr>
           </thead>
           <tbody id="eventsTable"></tbody>
         </table>
@@ -241,8 +250,9 @@
 
     <section class="screen" id="screen-manageUsers">
       <div class="section-head">
-        <h1>Manage Users</h1>
-        <p>Review registered users and their selected event.</p>
+        <button class="back-link nav-trigger" data-screen="adminDashboard" type="button">← Admin overview</button>
+        <h1>Manage members</h1>
+        <p>Search members, see their bookings and remove accounts.</p>
       </div>
       <form class="inline-form search-form" id="userSearchForm">
         <input name="query" placeholder="Search username, email, or nationality">
@@ -252,7 +262,7 @@
       <div class="table-card">
         <table>
           <thead>
-            <tr><th>ID</th><th>Username</th><th>Email</th><th>Nationality</th><th>Registered Event</th><th>Action</th></tr>
+            <tr><th>Member</th><th>Nationality</th><th>Booking</th><th>Seats</th><th>Paid</th><th></th></tr>
           </thead>
           <tbody id="usersTable"></tbody>
         </table>
@@ -302,5 +312,6 @@
   <script src="extras.js"></script>
   <script src="checkout.js"></script>
   <script src="home-auth.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>

@@ -108,7 +108,7 @@ function ticketCard(user, ev) {
           <div><dt>Venue</dt><dd>${info.venue}${info.city ? `, ${info.city}` : ""}</dd></div>
           <div><dt>Holder</dt><dd>${user.username}</dd></div>
           ${user.seats && user.seats.length ? `<div><dt>Seats</dt><dd>${user.tierName} · ${user.seats.join(", ")}</dd></div>` : ""}
-          ${user.total ? `<div><dt>Paid</dt><dd>$${user.total.toFixed(2)}</dd></div>` : ""}
+          ${user.total ? `<div><dt>Paid</dt><dd>${sar(user.total, 2)}</dd></div>` : ""}
         </dl>
       </div>
       <div class="ticket-stub">${qr(ref)}<span>Admit one</span></div>
@@ -162,7 +162,7 @@ renderMember = function renderMemberPlus() {
 };
 
 /* ---------- Admin KPI icons + fill ring ---------- */
-const KPI_ICONS = { adminUsers: "users", adminBooked: "ticket", adminEvents: "grid", adminSeats: "seat" };
+const KPI_ICONS = { adminUsers: "tag", adminBooked: "ticket", adminEvents: "users", adminSeats: "seat" };
 const renderAdminBase = renderAdmin;
 renderAdmin = function renderAdminPlus() {
   renderAdminBase();
