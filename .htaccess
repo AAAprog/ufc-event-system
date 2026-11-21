@@ -6,6 +6,9 @@ Options -Indexes
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
 
-<FilesMatch "(\.sql|\.ps1|\.md|\.env)$">
+<FilesMatch "(\.sql|\.ps1|\.md|\.env|\.json|\.yml)$">
     Require all denied
 </FilesMatch>
+
+# Repository tooling is not part of the PHP site
+RedirectMatch 404 /(tests|scripts|guides|node_modules|\.github)(/|$)

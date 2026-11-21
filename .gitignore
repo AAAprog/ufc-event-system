@@ -16,3 +16,8 @@ db/config.runtime.php
 
 # PHP / XAMPP temp artifacts
 php_error_log
+
+# Node / tests
+node_modules/
+package-lock.json
+test-results/
