@@ -1,0 +1,11 @@
+{
+  "name": "ufc-event-system",
+  "private": true,
+  "description": "UFC fight night ticketing: PHP/MySQL app and GitHub Pages preview",
+  "scripts": {
+    "test": "node tests/preview.e2e.js"
+  },
+  "devDependencies": {
+    "playwright": "1.48.2"
+  }
+}

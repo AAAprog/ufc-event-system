@@ -1,109 +1,128 @@
-# UFC Event Management System
+# UFC Fight Night — Event Ticketing System
 
-A role-based PHP and MySQL application for managing UFC event bookings, member accounts, and event capacity.
+A full-stack ticket booking system for UFC fight nights, with separate **member** and **admin** roles.
+The production app is built with **PHP 8 and MySQL**. An **interactive preview** of the complete booking journey is published on GitHub Pages.
 
-[Live interactive preview](https://aaaprog.github.io/ufc-event-system/) | [Source code](https://github.com/AAAprog/ufc-event-system)
+[![Preview tests](https://github.com/AAAprog/ufc-event-system/actions/workflows/preview-tests.yml/badge.svg)](https://github.com/AAAprog/ufc-event-system/actions/workflows/preview-tests.yml)
 
-## Overview
+**[Live demo →](https://aaaprog.github.io/ufc-event-system/)**
 
-The system gives members a clear path from registration to event booking, while administrators can manage accounts, event inventory, and capacity from one place. The interface is responsive and keeps primary actions visible on desktop and mobile.
+![Home page](.github/assets/home.jpg)
+
+| Seat selection | Payment |
+| --- | --- |
+| ![Seat selection](.github/assets/seats.jpg) | ![Payment](.github/assets/payment.jpg) |
+
+| Admin dashboard | Phone |
+| --- | --- |
+| ![Admin dashboard](.github/assets/admin.jpg) | <img src=".github/assets/phone.jpg" alt="Phone view" width="260"> |
+
+---
+
+## Highlights
+
+- **No overbooking.** Bookings run inside MySQL transactions with row-level locking (`SELECT … FOR UPDATE`) and an atomic capacity check, so two people can never take the last seat.
+- **Secure by default.** Passwords are hashed with `password_hash()`. Every state-changing form carries a CSRF token. The session is regenerated on login, and all user input goes through prepared statements.
+- **Two roles.** Members register, sign in, book and switch events, and manage their profile. Admins manage events, capacity and member accounts.
+- **Full booking journey in the preview.** Event search and city filters, a seat map with a 10-minute hold, an order summary with fees and VAT in SAR, a validated card checkout, a QR ticket, and an admin dashboard with revenue and capacity.
+- **Tested.** 37 automated browser checks run on every push and pull request.
+
+## Two parts of this repository
+
+| | PHP application | Interactive preview |
+| --- | --- | --- |
+| Location | repository root (`admin/`, `user/`, `db/`) | `docs/` |
+| Runs on | Apache + PHP 8 + MySQL | any browser, hosted on GitHub Pages |
+| Data | MySQL database | each visitor's browser (`localStorage`) |
+| Purpose | the real system | a portfolio demo you can click through |
+
+The preview simulates payment and taken seats. Each visitor's changes stay in their own browser.
 
 ## Features
 
-- Secure member registration and sign-in with hashed passwords
-- CSRF protection for all state-changing forms
-- Member profile updates, including optional password changes
-- Nationality selection and validated account data
-- Event booking and booking changes with seat availability checks
-- Transaction-safe seat counts to prevent overbooking
-- Administrator authentication and dashboard reporting
-- User search and account deletion controls
-- Event creation, editing, quota management, and deletion
-- Interactive GitHub Pages preview for portfolios and LinkedIn
+### Members
+- Register, sign in and update profile (optional password change)
+- Browse fight nights; search and filter by city
+- Choose a section (Cageside, Floor, Stands) and exact seats, up to 6 per booking *(preview)*
+- Checkout with service fee and 15% VAT, card validation and a seat-hold timer *(preview)*
+- Book, switch or cancel a booking; seats are released automatically
 
-## Roles
+### Admins
+- Separate sign-in with a session guard and sign-out
+- Dashboard: revenue, tickets sold, members, seats left, best-selling events and recent bookings
+- Manage events: create with date, venue, city, capacity and price; edit inline; delete
+- Manage members: search, view bookings and payments, delete accounts (their seats are released)
 
-| Role | Capabilities |
+## Tech stack
+
+| Area | Technology |
 | --- | --- |
-| Member | Register, sign in, update profile, book an available event, and change an existing booking. |
-| Administrator | View operational totals, search members, manage member accounts, and create or update event capacity. |
+| Backend | PHP 8, MySQLi prepared statements, sessions |
+| Database | MySQL / MariaDB |
+| Frontend | HTML, CSS, vanilla JavaScript |
+| Testing | Playwright (end-to-end browser tests) |
+| CI / hosting | GitHub Actions, GitHub Pages |
 
-## Technology
-
-- PHP 8+
-- MySQL / MariaDB
-- MySQLi prepared statements
-- HTML and CSS
-- Vanilla JavaScript for the GitHub Pages preview
-
-## Local Setup
-
-### 1. Prerequisites
-
-- PHP 8.0 or later
-- MySQL or MariaDB
-- Apache, XAMPP, or an equivalent local PHP server
-
-### 2. Create the database
-
-Create a database named `ufc_event`, then import [`db/setup.sql`](db/setup.sql). The schema creates the member, administrator, and event tables and provides initial event data.
-
-### 3. Configure the connection
-
-For local XAMPP, the default configuration in [`db/config.php`](db/config.php) uses:
+## Project structure
 
 ```text
-Host: localhost
-User: root
-Password: (empty)
-Database: ufc_event
+.
+├── admin/                  Admin sign-in, dashboard, manage events, manage users
+├── user/                   Member registration, sign-in, profile, dashboard, booking
+├── db/
+│   ├── app.php             Shared helpers: sessions, CSRF, validation, escaping
+│   ├── config.php          Database connection (reads runtime file or env vars)
+│   ├── config.runtime.example.php
+│   └── setup.sql           Schema and seed data
+├── css/                    Styles for the PHP application
+├── index.php               Landing page
+├── docs/                   Interactive preview (GitHub Pages)
+│   ├── index.html
+│   └── assets/
+│       ├── css/            Base styles + modern, inspire and tidy layers
+│       └── js/             App logic, checkout, admin, home/auth, UI layers
+├── tests/
+│   └── preview.e2e.js      37 end-to-end checks for the preview
+├── scripts/
+│   ├── screenshots.js      Regenerates the README screenshots
+│   └── sync-to-xampp.ps1   Mirrors the project into XAMPP
+├── guides/
+│   └── DEPLOYMENT.md       Deploying to a PHP/MySQL host
+└── .github/
+    ├── workflows/          CI: runs the preview tests
+    └── assets/             README screenshots
 ```
 
-For another environment, copy `db/config.runtime.example.php` to `db/config.runtime.php` and update the values. The runtime configuration file is ignored by Git.
+## Run the PHP app locally
 
-### 4. Run the application
+**Requirements:** PHP 8+, MySQL or MariaDB, and Apache (XAMPP works).
 
-Place the project inside your server directory, for example:
+1. **Create the database.** Create a database named `ufc_event` and import [`db/setup.sql`](db/setup.sql).
+2. **Configure the connection.** XAMPP defaults (`localhost`, `root`, empty password, `ufc_event`) work out of the box. For other setups, copy `db/config.runtime.example.php` to `db/config.runtime.php` and fill in your values; this file is git-ignored. Environment variables `DB_HOST`, `DB_USER`, `DB_PASS` and `DB_NAME` also work.
+3. **Serve it.** Put the project in your web root, for example `C:\xampp\htdocs\ufc_event_system`. On Windows, `scripts/sync-to-xampp.ps1` does this for you. Then open `http://localhost/ufc_event_system/`.
 
-```text
-C:\xampp\htdocs\ufc_event_system
+The schema seeds an `admin` account. Replace its password hash in `db/setup.sql` with one you generate before deploying anywhere public.
+
+To deploy to a shared PHP host, see [`guides/DEPLOYMENT.md`](guides/DEPLOYMENT.md).
+
+## Run the preview and tests
+
+The preview needs no build: open `docs/index.html` in a browser.
+
+```bash
+npm install
+npx playwright install chromium
+npm test                      # 37 end-to-end checks
+node scripts/screenshots.js   # refresh README screenshots
 ```
 
-Start Apache and MySQL, then open:
+**Demo logins:**
+- Member: `ahmed_member` / `member123`
+- Admin: open *Staff sign-in* in the footer, then `admin` / `admin123`
+- Test card: `4242 4242 4242 4242`, any future expiry, any 3-digit CVC
 
-```text
-http://localhost/ufc_event_system/
-```
+## Security notes
 
-The included [`sync-to-xampp.ps1`](sync-to-xampp.ps1) script can mirror this project into the XAMPP web directory.
-
-## Administrator Access
-
-The schema seeds an `admin` account. Its password is stored only as a hash. Before a production deployment, generate a password hash with PHP and replace the seeded value in `db/setup.sql` with one you control.
-
-## Deployment
-
-For a PHP/MySQL host, follow [`DEPLOY-FREE-HOSTING.md`](DEPLOY-FREE-HOSTING.md). The `docs/` directory is separate from the PHP application and is published by GitHub Pages for the interactive preview.
-
-## Project Structure
-
-```text
-admin/       Administrator authentication, dashboard, user management, and event management
-user/        Member registration, authentication, profile, dashboard, and booking workflows
-db/          Database connection, shared application helpers, and schema
-css/         Shared application styles
-docs/        Static interactive preview published through GitHub Pages
-```
-
-## Security Notes
-
-- Passwords use PHP's `password_hash()` and `password_verify()` APIs.
-- POST requests that alter data require a CSRF token.
-- Database operations use prepared statements where user input is involved.
-- Database credentials belong in `db/config.runtime.php` or environment variables, never in the repository.
-
-## Portfolio Link
-
-Use this GitHub Pages URL in the LinkedIn Projects section so visitors can explore the member and administrator flows directly:
-
-`https://aaaprog.github.io/ufc-event-system/`
+- Credentials belong in `db/config.runtime.php` or environment variables, never in the repository.
+- `.htaccess` turns off directory listing, adds security headers, and blocks SQL, config and repository-tooling files.
+- The preview's demo credentials are public by design. They exist only in the browser demo, not in the PHP app.
